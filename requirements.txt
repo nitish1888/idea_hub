@@ -1,0 +1,14 @@
+flask
+flask-cors
+psycopg2-binary
+google-generativeai
+python-dotenv
+numpy
+requests
+langchain
+langchain-community
+sentence-transformers
+torch
+transformers
+PyMuPDF
+Werkzeug 
