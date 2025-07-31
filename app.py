@@ -145,47 +145,146 @@ def register_frontend_routes(app):
     
     @app.route('/api/contributors', methods=['GET', 'POST'])
     def handle_contributors():
-        """Handle contributor registration and listing"""
-        import json
-        import os
-        
-        contributors_file = 'contributors.json'
+        """Handle contributor registration and listing using database"""
+        from models.contributor import ContributorModel
         
         if request.method == 'POST':
-            # Add new contributor
-            data = request.get_json()
-            
-            # Load existing contributors
-            if os.path.exists(contributors_file):
-                with open(contributors_file, 'r') as f:
-                    contributors = json.load(f)
-            else:
-                contributors = []
-            
-            # Add new contributor with timestamp
-            from datetime import datetime
-            new_contributor = {
-                **data,
-                'id': len(contributors) + 1,
-                'registered_at': datetime.now().isoformat()
-            }
-            contributors.append(new_contributor)
-            
-            # Save to file
-            with open(contributors_file, 'w') as f:
-                json.dump(contributors, f, indent=2)
-            
-            return jsonify({"status": "success", "contributor": new_contributor})
+            try:
+                # Get and validate contributor data
+                data = request.get_json()
+                
+                # Map frontend field names to database field names
+                contributor_data = {
+                    'name': data.get('name'),
+                    'manager_name': data.get('manager'),  # Frontend sends 'manager'
+                    'skillset': data.get('skillset'),
+                    'hours_available': data.get('hours'),  # Frontend sends 'hours'
+                    'email': data.get('email'),
+                    'department': data.get('department')
+                }
+                
+                # Validate required fields
+                required_fields = ['name', 'manager_name', 'skillset', 'hours_available']
+                for field in required_fields:
+                    if not contributor_data.get(field):
+                        return jsonify({
+                            "status": "error", 
+                            "message": f"Missing required field: {field}"
+                        }), 400
+                
+                # Create contributor in database
+                new_contributor = ContributorModel.create_contributor(contributor_data)
+                
+                return jsonify({
+                    "status": "success", 
+                    "contributor": new_contributor
+                })
+                
+            except Exception as e:
+                logging.error(f"Error creating contributor: {e}")
+                return jsonify({
+                    "status": "error",
+                    "message": "Failed to register contributor"
+                }), 500
         
         else:
-            # Get all contributors
-            if os.path.exists(contributors_file):
-                with open(contributors_file, 'r') as f:
-                    contributors = json.load(f)
-            else:
-                contributors = []
+            # GET request - get all contributors
+            try:
+                contributors = ContributorModel.get_all_contributors()
+                return jsonify({"contributors": contributors})
+                
+            except Exception as e:
+                logging.error(f"Error fetching contributors: {e}")
+                return jsonify({
+                    "status": "error",
+                    "message": "Failed to fetch contributors"
+                }), 500
+    
+    @app.route('/api/contributors/<int:contributor_id>', methods=['GET', 'PUT', 'DELETE'])
+    def handle_single_contributor(contributor_id):
+        """Handle individual contributor operations"""
+        from models.contributor import ContributorModel
+        
+        if request.method == 'GET':
+            try:
+                contributor = ContributorModel.get_contributor_by_id(contributor_id)
+                if not contributor:
+                    return jsonify({"status": "error", "message": "Contributor not found"}), 404
+                
+                return jsonify({"contributor": contributor})
+                
+            except Exception as e:
+                logging.error(f"Error fetching contributor {contributor_id}: {e}")
+                return jsonify({"status": "error", "message": "Failed to fetch contributor"}), 500
+        
+        elif request.method == 'PUT':
+            try:
+                data = request.get_json()
+                updated_contributor = ContributorModel.update_contributor(contributor_id, data)
+                
+                if not updated_contributor:
+                    return jsonify({"status": "error", "message": "Contributor not found"}), 404
+                
+                return jsonify({
+                    "status": "success",
+                    "contributor": updated_contributor
+                })
+                
+            except Exception as e:
+                logging.error(f"Error updating contributor {contributor_id}: {e}")
+                return jsonify({"status": "error", "message": "Failed to update contributor"}), 500
+        
+        elif request.method == 'DELETE':
+            try:
+                success = ContributorModel.delete_contributor(contributor_id)
+                
+                if not success:
+                    return jsonify({"status": "error", "message": "Contributor not found"}), 404
+                
+                return jsonify({"status": "success", "message": "Contributor deleted"})
+                
+            except Exception as e:
+                logging.error(f"Error deleting contributor {contributor_id}: {e}")
+                return jsonify({"status": "error", "message": "Failed to delete contributor"}), 500
+    
+    @app.route('/api/contributors/stats')
+    def get_contributor_stats():
+        """Get contributor statistics for dashboard"""
+        try:
+            from models.contributor import ContributorModel
+            stats = ContributorModel.get_contributor_stats()
+            return jsonify(stats)
+            
+        except Exception as e:
+            logging.error(f"Error fetching contributor stats: {e}")
+            return jsonify({
+                "total_contributors": 0,
+                "total_hours_per_week": 0,
+                "unique_skills": 0,
+                "recent_registrations": 0
+            }), 500
+    
+    @app.route('/api/contributors/search')
+    def search_contributors():
+        """Search contributors with filters"""
+        try:
+            from models.contributor import ContributorModel
+            
+            search_term = request.args.get('q')
+            skill_filter = request.args.get('skill')
+            hours_filter = request.args.get('hours')
+            
+            contributors = ContributorModel.search_contributors(
+                search_term=search_term,
+                skill_filter=skill_filter,
+                hours_filter=hours_filter
+            )
             
             return jsonify({"contributors": contributors})
+            
+        except Exception as e:
+            logging.error(f"Error searching contributors: {e}")
+            return jsonify({"status": "error", "message": "Search failed"}), 500
 
 #=============================================================================
 # MAIN APPLICATION ENTRY POINT
@@ -217,6 +316,7 @@ def main():
     print("  GET  /submit - Submit Innovation Ideas")
     print("  GET  /search - AI-Powered Search")
     print("  GET  /browse - Browse All Ideas")
+    print("  GET  /contributors - Innovation Contributors")
     print("  GET  /health-check - System Health Monitor")
     
     print("\n🔍 API endpoints:")
@@ -239,6 +339,12 @@ def main():
     print("  GET  /api/dashboard/kpis - Dashboard metrics")
     print("  GET  /api/dashboard/insights - AI-generated insights")
     print("  GET  /api/dashboard/trends - Trend analysis")
+    
+    # Contributor management endpoints
+    print("  GET/POST /api/contributors - Contributor management")
+    print("  GET  /api/contributors/stats - Contributor statistics")
+    print("  GET  /api/contributors/search - Search contributors")
+    print("  GET/PUT/DELETE /api/contributors/<id> - Individual contributor operations")
     
     # Display configuration information
     print(f"\n🌐 Web Application: http://localhost:5001")

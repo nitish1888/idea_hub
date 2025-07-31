@@ -157,8 +157,30 @@ async function loadContributors() {
     }
 }
 
-// Update statistics
-function updateStatistics() {
+// Load and update statistics from API
+async function updateStatistics() {
+    try {
+        const response = await fetch('/api/contributors/stats');
+        const stats = await response.json();
+        
+        if (response.ok) {
+            document.getElementById('total-contributors').textContent = stats.total_contributors || 0;
+            document.getElementById('available-hours').textContent = stats.total_hours_per_week || 0;
+            document.getElementById('skill-domains').textContent = stats.unique_skills || 0;
+            document.getElementById('recent-registrations').textContent = stats.recent_registrations || 0;
+        } else {
+            // Fallback to client-side calculation if API fails
+            updateStatisticsFromClientData();
+        }
+    } catch (error) {
+        console.error('Error loading stats:', error);
+        // Fallback to client-side calculation
+        updateStatisticsFromClientData();
+    }
+}
+
+// Fallback function for client-side statistics calculation
+function updateStatisticsFromClientData() {
     const totalContributors = allContributors.length;
     
     // Calculate total available hours
