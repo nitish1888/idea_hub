@@ -137,6 +137,55 @@ def register_frontend_routes(app):
     def health_check():
         """Quick health check page"""
         return render_template('health.html')
+    
+    @app.route('/contributors')
+    def contributors():
+        """Contributors page"""
+        return render_template('contributors.html')
+    
+    @app.route('/api/contributors', methods=['GET', 'POST'])
+    def handle_contributors():
+        """Handle contributor registration and listing"""
+        import json
+        import os
+        
+        contributors_file = 'contributors.json'
+        
+        if request.method == 'POST':
+            # Add new contributor
+            data = request.get_json()
+            
+            # Load existing contributors
+            if os.path.exists(contributors_file):
+                with open(contributors_file, 'r') as f:
+                    contributors = json.load(f)
+            else:
+                contributors = []
+            
+            # Add new contributor with timestamp
+            from datetime import datetime
+            new_contributor = {
+                **data,
+                'id': len(contributors) + 1,
+                'registered_at': datetime.now().isoformat()
+            }
+            contributors.append(new_contributor)
+            
+            # Save to file
+            with open(contributors_file, 'w') as f:
+                json.dump(contributors, f, indent=2)
+            
+            return jsonify({"status": "success", "contributor": new_contributor})
+        
+        else:
+            # Get all contributors
+            if os.path.exists(contributors_file):
+                with open(contributors_file, 'r') as f:
+                    contributors = json.load(f)
+            else:
+                contributors = []
+            
+            return jsonify({"contributors": contributors})
 
 #=============================================================================
 # MAIN APPLICATION ENTRY POINT

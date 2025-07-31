@@ -1,0 +1,394 @@
+{% extends "base.html" %}
+
+{% block title %}Contributors - Idea Hub{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2 class="page-title">Innovation Contributors</h2>
+    <p class="page-subtitle">Meet our talented team of innovation contributors ready to collaborate</p>
+</div>
+
+<!-- Contributor Statistics -->
+<div class="grid grid-cols-4 mb-8" style="gap: 1rem;">
+    <div class="metric-card" style="padding: 1.5rem;">
+        <div class="metric-value" id="total-contributors" style="font-size: 2rem;">-</div>
+        <div class="metric-label">Total Contributors</div>
+    </div>
+    <div class="metric-card" style="padding: 1.5rem;">
+        <div class="metric-value" id="available-hours" style="font-size: 2rem;">-</div>
+        <div class="metric-label">Total Hours/Week</div>
+    </div>
+    <div class="metric-card" style="padding: 1.5rem;">
+        <div class="metric-value" id="skill-domains" style="font-size: 2rem;">-</div>
+        <div class="metric-label">Skill Domains</div>
+    </div>
+    <div class="metric-card" style="padding: 1.5rem;">
+        <div class="metric-value" id="recent-registrations" style="font-size: 2rem;">-</div>
+        <div class="metric-label">This Week</div>
+    </div>
+</div>
+
+<!-- Search and Filter -->
+<div class="card mb-6" style="padding: 1.5rem;">
+    <div class="grid grid-cols-3" style="gap: 1rem;">
+        <div class="form-group" style="margin-bottom: 0;">
+            <label for="search-contributors" class="form-label">Search Contributors</label>
+            <input type="text" id="search-contributors" class="form-input" 
+                   placeholder="Search by name, skills, or manager...">
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+            <label for="skill-filter" class="form-label">Filter by Skill</label>
+            <select id="skill-filter" class="form-select">
+                <option value="">All Skills</option>
+                <!-- Options populated dynamically -->
+            </select>
+        </div>
+        <div class="form-group" style="margin-bottom: 0;">
+            <label for="hours-filter" class="form-label">Filter by Availability</label>
+            <select id="hours-filter" class="form-select">
+                <option value="">All Availability</option>
+                <option value="1-5">1-5 hours</option>
+                <option value="6-10">6-10 hours</option>
+                <option value="11-20">11-20 hours</option>
+                <option value="21+">21+ hours</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Contributors Grid -->
+<div class="card" style="padding: 1.5rem;">
+    <h3 style="margin-bottom: 1.5rem; color: var(--gray-900);">
+        <i class="fas fa-users text-red"></i>
+        Registered Contributors
+    </h3>
+    
+    <div id="contributors-container" class="grid grid-cols-3" style="gap: 1.5rem;">
+        <!-- Contributors will be loaded here -->
+        <div class="text-center" style="grid-column: 1 / -1; padding: 2rem;">
+            <div class="spinner" style="margin: 0 auto 1rem;"></div>
+            <p>Loading contributors...</p>
+        </div>
+    </div>
+    
+    <!-- Empty State -->
+    <div id="empty-state" class="text-center" style="display: none; grid-column: 1 / -1; padding: 3rem;">
+        <i class="fas fa-user-plus" style="font-size: 3rem; color: var(--gray-400); margin-bottom: 1rem;"></i>
+        <h4 style="color: var(--gray-600); margin-bottom: 0.5rem;">No Contributors Yet</h4>
+        <p style="color: var(--gray-500); margin-bottom: 1.5rem;">Be the first to join our innovation community!</p>
+        <button class="btn btn-primary" onclick="document.getElementById('contributor-toggle-btn').click()">
+            <i class="fas fa-user-plus"></i>
+            Join as Contributor
+        </button>
+    </div>
+</div>
+
+<!-- Contributor Details Modal -->
+<div id="contributor-modal" class="modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; padding: 2rem;">
+    <div class="modal-content" style="background: white; border-radius: 1rem; max-width: 600px; margin: 2rem auto; max-height: calc(100vh - 4rem); overflow-y: auto;">
+        <div class="modal-header" style="padding: 2rem 2rem 1rem; border-bottom: 1px solid var(--gray-200);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <h2 id="modal-contributor-name" style="margin: 0; color: var(--gray-900);"></h2>
+                <button class="modal-close" style="background: none; border: none; font-size: 1.5rem; color: var(--gray-500); cursor: pointer; padding: 0.5rem;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="modal-body" style="padding: 2rem;">
+            <div id="modal-contributor-details">
+                <!-- Contributor details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000;">
+    <div class="bg-white p-8 rounded-2xl text-center">
+        <div class="spinner mb-4" style="margin: 0 auto;"></div>
+        <p>Loading contributors...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let allContributors = [];
+let filteredContributors = [];
+
+// Load contributors on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadContributors();
+    setupEventListeners();
+});
+
+// Setup event listeners
+function setupEventListeners() {
+    document.getElementById('search-contributors').addEventListener('input', filterContributors);
+    document.getElementById('skill-filter').addEventListener('change', filterContributors);
+    document.getElementById('hours-filter').addEventListener('change', filterContributors);
+    
+    // Modal close handler
+    document.querySelector('#contributor-modal .modal-close').addEventListener('click', closeContributorModal);
+    document.getElementById('contributor-modal').addEventListener('click', function(e) {
+        if (e.target === this) closeContributorModal();
+    });
+}
+
+// Load contributors from API
+async function loadContributors() {
+    try {
+        const response = await fetch('/api/contributors');
+        const data = await response.json();
+        
+        if (response.ok) {
+            allContributors = data.contributors;
+            filteredContributors = [...allContributors];
+            updateStatistics();
+            populateSkillFilter();
+            displayContributors();
+        } else {
+            showError('Failed to load contributors');
+        }
+        
+    } catch (error) {
+        console.error('Error loading contributors:', error);
+        showError('Network error: ' + error.message);
+    }
+}
+
+// Update statistics
+function updateStatistics() {
+    const totalContributors = allContributors.length;
+    
+    // Calculate total available hours
+    const totalHours = allContributors.reduce((sum, contributor) => {
+        const hourRange = contributor.hours;
+        let hours = 0;
+        if (hourRange === '1-5') hours = 3;
+        else if (hourRange === '6-10') hours = 8;
+        else if (hourRange === '11-20') hours = 15;
+        else if (hourRange === '21+') hours = 25;
+        return sum + hours;
+    }, 0);
+    
+    // Count unique skill domains
+    const allSkills = allContributors.flatMap(c => 
+        c.skillset.split(',').map(s => s.trim().toLowerCase())
+    );
+    const uniqueSkills = [...new Set(allSkills)].length;
+    
+    // Count recent registrations (last 7 days)
+    const oneWeekAgo = new Date();
+    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+    const recentCount = allContributors.filter(c => 
+        new Date(c.registered_at) > oneWeekAgo
+    ).length;
+    
+    document.getElementById('total-contributors').textContent = totalContributors;
+    document.getElementById('available-hours').textContent = totalHours;
+    document.getElementById('skill-domains').textContent = uniqueSkills;
+    document.getElementById('recent-registrations').textContent = recentCount;
+}
+
+// Populate skill filter
+function populateSkillFilter() {
+    const skillSelect = document.getElementById('skill-filter');
+    const allSkills = [...new Set(
+        allContributors.flatMap(c => 
+            c.skillset.split(',').map(s => s.trim())
+        )
+    )].sort();
+    
+    skillSelect.innerHTML = '<option value="">All Skills</option>';
+    allSkills.forEach(skill => {
+        const option = document.createElement('option');
+        option.value = skill;
+        option.textContent = skill;
+        skillSelect.appendChild(option);
+    });
+}
+
+// Filter contributors
+function filterContributors() {
+    const searchTerm = document.getElementById('search-contributors').value.toLowerCase();
+    const skillFilter = document.getElementById('skill-filter').value;
+    const hoursFilter = document.getElementById('hours-filter').value;
+    
+    filteredContributors = allContributors.filter(contributor => {
+        const matchesSearch = !searchTerm || 
+            contributor.name.toLowerCase().includes(searchTerm) ||
+            contributor.manager.toLowerCase().includes(searchTerm) ||
+            contributor.skillset.toLowerCase().includes(searchTerm);
+        
+        const matchesSkill = !skillFilter || 
+            contributor.skillset.toLowerCase().includes(skillFilter.toLowerCase());
+        
+        const matchesHours = !hoursFilter || 
+            contributor.hours === hoursFilter;
+        
+        return matchesSearch && matchesSkill && matchesHours;
+    });
+    
+    displayContributors();
+}
+
+// Display contributors
+function displayContributors() {
+    const container = document.getElementById('contributors-container');
+    const emptyState = document.getElementById('empty-state');
+    
+    if (filteredContributors.length === 0) {
+        container.innerHTML = '';
+        emptyState.style.display = 'block';
+        return;
+    }
+    
+    emptyState.style.display = 'none';
+    
+    const contributorsHtml = filteredContributors.map(contributor => `
+        <div class="contributor-card" style="background: white; border: 2px solid var(--gray-200); border-radius: 1rem; padding: 1.5rem; transition: var(--transition-all); cursor: pointer;" onclick="showContributorDetails(${contributor.id})">
+            <div style="text-align: center; margin-bottom: 1rem;">
+                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--red-hat-red), var(--red-hat-red-dark)); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: white; font-size: 1.5rem; font-weight: bold;">
+                    ${contributor.name.charAt(0).toUpperCase()}
+                </div>
+                <h4 style="margin: 0 0 0.5rem 0; color: var(--gray-900); font-size: 1.1rem;">
+                    ${contributor.name}
+                </h4>
+                <p style="margin: 0; color: var(--gray-600); font-size: 0.9rem;">
+                    Reports to: ${contributor.manager}
+                </p>
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <i class="fas fa-clock" style="color: var(--red-hat-red); font-size: 0.9rem;"></i>
+                    <span style="font-size: 0.9rem; color: var(--gray-700);">${contributor.hours} hours/week</span>
+                </div>
+                <div style="display: flex; align-items: flex-start; gap: 0.5rem;">
+                    <i class="fas fa-tools" style="color: var(--red-hat-red); font-size: 0.9rem; margin-top: 0.1rem;"></i>
+                    <div style="flex: 1;">
+                        <div style="font-size: 0.85rem; color: var(--gray-700); line-height: 1.4;">
+                            ${contributor.skillset.split(',').slice(0, 3).map(s => s.trim()).join(', ')}
+                            ${contributor.skillset.split(',').length > 3 ? '...' : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align: center; margin-top: 1rem;">
+                <span style="color: var(--red-hat-red); font-weight: 600; font-size: 0.85rem;">
+                    View Details <i class="fas fa-arrow-right"></i>
+                </span>
+            </div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = contributorsHtml;
+    
+    // Add hover effects
+    setTimeout(() => {
+        document.querySelectorAll('.contributor-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-4px)';
+                this.style.boxShadow = 'var(--shadow-lg)';
+                this.style.borderColor = 'var(--red-300)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = 'var(--shadow-sm)';
+                this.style.borderColor = 'var(--gray-200)';
+            });
+        });
+    }, 100);
+}
+
+// Show contributor details
+function showContributorDetails(contributorId) {
+    const contributor = allContributors.find(c => c.id === contributorId);
+    if (!contributor) return;
+    
+    document.getElementById('modal-contributor-name').textContent = contributor.name;
+    
+    const skills = contributor.skillset.split(',').map(s => s.trim());
+    const registeredDate = new Date(contributor.registered_at).toLocaleDateString();
+    
+    const modalContent = `
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-bottom: 2rem;">
+            <div>
+                <h5 style="color: var(--gray-900); margin-bottom: 0.75rem; font-size: 1rem;">
+                    <i class="fas fa-user"></i> Contact Information
+                </h5>
+                <div style="background: var(--gray-50); padding: 1rem; border-radius: 0.5rem;">
+                    <p style="margin: 0 0 0.5rem 0; color: var(--gray-700);">
+                        <strong>Name:</strong> ${contributor.name}
+                    </p>
+                    <p style="margin: 0; color: var(--gray-700);">
+                        <strong>Manager:</strong> ${contributor.manager}
+                    </p>
+                </div>
+            </div>
+            
+            <div>
+                <h5 style="color: var(--gray-900); margin-bottom: 0.75rem; font-size: 1rem;">
+                    <i class="fas fa-clock"></i> Availability
+                </h5>
+                <div style="background: var(--gray-50); padding: 1rem; border-radius: 0.5rem;">
+                    <p style="margin: 0 0 0.5rem 0; color: var(--gray-700);">
+                        <strong>Hours/Week:</strong> ${contributor.hours}
+                    </p>
+                    <p style="margin: 0; color: var(--gray-700);">
+                        <strong>Registered:</strong> ${registeredDate}
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-bottom: 2rem;">
+            <h5 style="color: var(--gray-900); margin-bottom: 0.75rem; font-size: 1rem;">
+                <i class="fas fa-tools"></i> Skills & Expertise
+            </h5>
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                ${skills.map(skill => `
+                    <span style="background: var(--red-100); color: var(--red-800); padding: 0.5rem 1rem; border-radius: 1rem; font-size: 0.85rem; font-weight: 500;">
+                        ${skill}
+                    </span>
+                `).join('')}
+            </div>
+        </div>
+        
+        <div style="background: var(--blue-50); padding: 1.5rem; border-radius: 0.5rem; border: 1px solid var(--blue-200);">
+            <h5 style="color: var(--blue-800); margin-bottom: 0.5rem;">
+                <i class="fas fa-handshake"></i> Ready to Collaborate?
+            </h5>
+            <p style="color: var(--blue-700); margin: 0; font-size: 0.9rem;">
+                ${contributor.name} is available to contribute ${contributor.hours} hours per week to innovation projects.
+                Reach out through your organization's collaboration channels to connect!
+            </p>
+        </div>
+    `;
+    
+    document.getElementById('modal-contributor-details').innerHTML = modalContent;
+    document.getElementById('contributor-modal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+// Close contributor modal
+function closeContributorModal() {
+    document.getElementById('contributor-modal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+// Show error
+function showError(message) {
+    const container = document.getElementById('contributors-container');
+    container.innerHTML = `
+        <div class="alert alert-error" style="grid-column: 1 / -1;">
+            <i class="fas fa-times-circle"></i>
+            <span>${message}</span>
+        </div>
+    `;
+}
+</script>
+{% endblock %}
