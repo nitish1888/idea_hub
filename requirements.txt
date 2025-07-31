@@ -11,4 +11,5 @@ sentence-transformers
 torch
 transformers
 PyMuPDF
-Werkzeug 
+Werkzeug
+Jinja2

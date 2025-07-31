@@ -1,0 +1,339 @@
+{% extends "base.html" %}
+
+{% block title %}Search Ideas - Red Hat Idea Hub{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2 class="page-title">Search Ideas</h2>
+    <p class="page-subtitle">Find innovation ideas using AI-powered semantic search</p>
+</div>
+
+<!-- Search Form -->
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-search text-red"></i>
+            Semantic Search
+        </h3>
+        <p class="card-description">Use natural language to find related ideas. Our AI understands meaning, not just keywords.</p>
+    </div>
+    
+    <form id="search-form">
+        <div class="form-group">
+            <label for="search-query" class="form-label">🔍 Search Query</label>
+            <textarea id="search-query" name="query" class="form-textarea" 
+                      placeholder="Describe what you're looking for... e.g., 'machine learning for customer support automation' or 'cloud security improvements'"
+                      required style="min-height: 100px;"></textarea>
+        </div>
+        
+        <div class="form-group text-center">
+            <button type="submit" class="btn btn-primary btn-large" id="search-btn">
+                <i class="fas fa-search"></i>
+                Search Ideas
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Search Results -->
+<div id="results-container" class="hidden" style="max-width: 1000px; margin: 2rem auto 0;">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fas fa-list-ul text-red"></i>
+                Search Results
+            </h3>
+            <p class="card-description" id="results-description">Found ideas related to your search</p>
+        </div>
+        
+        <div id="search-results"></div>
+    </div>
+</div>
+
+<!-- Example Searches -->
+<div class="card" style="max-width: 800px; margin: 2rem auto 0;">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-lightbulb text-red"></i>
+            Example Searches
+        </h3>
+        <p class="card-description">Try these example searches to explore our innovation database</p>
+    </div>
+    
+    <div class="grid grid-cols-2">
+        <div>
+            <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--gray-700);">Technology Focus</h4>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+                <li style="margin-bottom: 0.5rem;">
+                    <button class="example-search" data-query="artificial intelligence machine learning automation">
+                        <i class="fas fa-robot"></i>
+                        AI & Machine Learning
+                    </button>
+                </li>
+                <li style="margin-bottom: 0.5rem;">
+                    <button class="example-search" data-query="cloud computing infrastructure scalability">
+                        <i class="fas fa-cloud"></i>
+                        Cloud Infrastructure
+                    </button>
+                </li>
+                <li style="margin-bottom: 0.5rem;">
+                    <button class="example-search" data-query="cybersecurity threat detection vulnerability">
+                        <i class="fas fa-shield-alt"></i>
+                        Security Solutions
+                    </button>
+                </li>
+                <li style="margin-bottom: 0.5rem;">
+                    <button class="example-search" data-query="devops continuous integration deployment">
+                        <i class="fas fa-code-branch"></i>
+                        DevOps & CI/CD
+                    </button>
+                </li>
+            </ul>
+        </div>
+        
+        <div>
+            <h4 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--gray-700);">Business Impact</h4>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+                <li style="margin-bottom: 0.5rem;">
+                    <button class="example-search" data-query="customer support automation efficiency">
+                        <i class="fas fa-headset"></i>
+                        Customer Experience
+                    </button>
+                </li>
+                <li style="margin-bottom: 0.5rem;">
+                    <button class="example-search" data-query="developer productivity tools optimization">
+                        <i class="fas fa-tools"></i>
+                        Developer Tools
+                    </button>
+                </li>
+                <li style="margin-bottom: 0.5rem;">
+                    <button class="example-search" data-query="cost reduction optimization efficiency">
+                        <i class="fas fa-dollar-sign"></i>
+                        Cost Optimization
+                    </button>
+                </li>
+                <li style="margin-bottom: 0.5rem;">
+                    <button class="example-search" data-query="monitoring observability performance">
+                        <i class="fas fa-chart-line"></i>
+                        Monitoring & Analytics
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000;">
+    <div class="bg-white p-8 rounded-2xl text-center">
+        <div class="spinner mb-4" style="margin: 0 auto;"></div>
+        <p>Searching through innovation ideas...</p>
+        <p style="font-size: 0.875rem; color: var(--gray-600); margin-top: 0.5rem;">
+            AI is analyzing semantic similarity across all ideas
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Search form handler
+document.getElementById('search-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const query = document.getElementById('search-query').value.trim();
+    if (!query) {
+        alert('Please enter a search query');
+        return;
+    }
+    
+    await performSearch(query);
+});
+
+// Example search handlers
+document.querySelectorAll('.example-search').forEach(button => {
+    button.addEventListener('click', function() {
+        const query = this.getAttribute('data-query');
+        document.getElementById('search-query').value = query;
+        performSearch(query);
+    });
+});
+
+// Perform search
+async function performSearch(query) {
+    try {
+        showLoading();
+        
+        const response = await fetch('/api/ideas/search', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ query: query })
+        });
+        
+        const data = await response.json();
+        hideLoading();
+        
+        if (response.ok) {
+            displayResults(data, query);
+        } else {
+            showError(data.error || 'Search failed');
+        }
+        
+    } catch (error) {
+        console.error('Search error:', error);
+        hideLoading();
+        showError('Network error: ' + error.message);
+    }
+}
+
+// Display search results
+function displayResults(data, query) {
+    const container = document.getElementById('results-container');
+    const resultsDiv = document.getElementById('search-results');
+    const description = document.getElementById('results-description');
+    
+    // Update description
+    description.textContent = `Found ${data.results.length} ideas related to "${query}"`;
+    
+    if (data.results.length === 0) {
+        resultsDiv.innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <strong>No Results Found</strong>
+                    <p style="margin-top: 0.5rem; margin-bottom: 0;">
+                        Try different keywords or browse our example searches below.
+                    </p>
+                </div>
+            </div>
+        `;
+    } else {
+        const resultsHtml = data.results.map((idea, index) => `
+            <div class="result-card" style="background: ${index % 2 === 0 ? 'var(--gray-50)' : 'white'}; padding: 1.5rem; border-radius: 0.75rem; margin-bottom: 1rem; border: 1px solid var(--gray-200);">
+                <div style="display: flex; justify-content: between; align-items: flex-start; margin-bottom: 1rem;">
+                    <div style="flex: 1;">
+                        <h4 style="margin: 0 0 0.5rem 0; color: var(--gray-900); font-size: 1.25rem;">
+                            ${idea.title}
+                        </h4>
+                        <div style="display: flex; gap: 1rem; margin-bottom: 0.75rem;">
+                            <span style="background: var(--red-100); color: var(--red-800); padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.875rem; font-weight: 500;">
+                                <i class="fas fa-user"></i> ${idea.contributor}
+                            </span>
+                            <span style="background: var(--gray-100); color: var(--gray-700); padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.875rem; font-weight: 500;">
+                                <i class="fas fa-tag"></i> ${idea.category}
+                            </span>
+                            <span style="background: ${getImpactColor(idea.impact)}; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.875rem; font-weight: 500;">
+                                <i class="fas fa-chart-line"></i> ${idea.impact} Impact
+                            </span>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="background: var(--red-hat-red); color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600;">
+                            ${Math.round(idea.similarity)}% Match
+                        </div>
+                    </div>
+                </div>
+                
+                <p style="color: var(--gray-700); margin-bottom: 1rem; line-height: 1.6;">
+                    ${idea.description.length > 300 ? idea.description.substring(0, 300) + '...' : idea.description}
+                </p>
+                
+                ${idea.abstract ? `
+                    <div style="background: white; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid var(--red-hat-red); margin-bottom: 1rem;">
+                        <strong style="color: var(--gray-700); font-size: 0.875rem;">Executive Summary:</strong>
+                        <p style="margin: 0.5rem 0 0 0; color: var(--gray-600); font-size: 0.875rem;">${idea.abstract}</p>
+                    </div>
+                ` : ''}
+                
+                ${idea.relevance_explanation ? `
+                    <div style="background: var(--blue-50); color: var(--blue-800); padding: 1rem; border-radius: 0.5rem; border-left: 4px solid var(--blue-500);">
+                        <i class="fas fa-lightbulb"></i>
+                        <strong>Why this matches:</strong> ${idea.relevance_explanation}
+                    </div>
+                ` : ''}
+            </div>
+        `).join('');
+        
+        resultsDiv.innerHTML = resultsHtml;
+    }
+    
+    container.classList.remove('hidden');
+    
+    // Scroll to results
+    setTimeout(() => {
+        container.scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }, 100);
+}
+
+// Get impact color
+function getImpactColor(impact) {
+    switch(impact) {
+        case 'High': return 'var(--red-100); color: var(--red-800)';
+        case 'Medium': return 'var(--yellow-100); color: var(--yellow-800)';
+        case 'Low': return 'var(--gray-100); color: var(--gray-700)';
+        default: return 'var(--gray-100); color: var(--gray-700)';
+    }
+}
+
+// Show error
+function showError(message) {
+    const container = document.getElementById('results-container');
+    const resultsDiv = document.getElementById('search-results');
+    
+    resultsDiv.innerHTML = `
+        <div class="alert alert-error">
+            <i class="fas fa-times-circle"></i>
+            <span>Error: ${message}</span>
+        </div>
+    `;
+    
+    container.classList.remove('hidden');
+}
+
+// Loading functions
+function showLoading() {
+    document.getElementById('loading-overlay').style.display = 'flex';
+}
+
+function hideLoading() {
+    document.getElementById('loading-overlay').style.display = 'none';
+}
+
+// Add custom styles for example search buttons
+const style = document.createElement('style');
+style.textContent = `
+    .example-search {
+        background: white;
+        border: 1px solid var(--gray-300);
+        border-radius: 0.5rem;
+        padding: 0.75rem 1rem;
+        color: var(--gray-700);
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: var(--transition-all);
+        width: 100%;
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .example-search:hover {
+        background: var(--red-50);
+        border-color: var(--red-300);
+        color: var(--red-700);
+        transform: translateY(-1px);
+    }
+    
+    .example-search i {
+        color: var(--red-hat-red);
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

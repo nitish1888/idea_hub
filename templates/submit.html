@@ -1,0 +1,349 @@
+{% extends "base.html" %}
+
+{% block title %}Submit Idea - Red Hat Idea Hub{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2 class="page-title">Submit Innovation Idea</h2>
+    <p class="page-subtitle">Share your innovative concepts with the Red Hat community</p>
+</div>
+
+<!-- Submit Form -->
+<div class="card" style="max-width: 800px; margin: 0 auto;">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-lightbulb text-red"></i>
+            New Innovation Idea
+        </h3>
+        <p class="card-description">Fill out the form below to submit your innovation idea. AI-powered duplicate detection will help identify similar existing ideas.</p>
+    </div>
+    
+    <form id="idea-form">
+        <!-- Title -->
+        <div class="form-group">
+            <label for="title" class="form-label">💡 Innovation Title *</label>
+            <input type="text" id="title" name="title" class="form-input" 
+                   placeholder="Enter a descriptive title for your innovation" required>
+        </div>
+        
+        <!-- Description -->
+        <div class="form-group">
+            <label for="description" class="form-label">📝 Detailed Description *</label>
+            <textarea id="description" name="description" class="form-textarea" 
+                      placeholder="Describe your innovation in detail, including the problem it solves and the proposed solution" 
+                      required style="min-height: 150px;"></textarea>
+        </div>
+        
+        <!-- Abstract -->
+        <div class="form-group">
+            <label for="abstract" class="form-label">📄 Executive Summary</label>
+            <textarea id="abstract" name="abstract" class="form-textarea" 
+                      placeholder="Optional: Brief executive summary or key highlights" 
+                      style="min-height: 100px;"></textarea>
+        </div>
+        
+        <!-- Two-column layout for metadata -->
+        <div class="grid grid-cols-2">
+            <div class="form-group">
+                <label for="contributor" class="form-label">👤 Contributor Name *</label>
+                <input type="text" id="contributor" name="contributor" class="form-input" 
+                       placeholder="Your name" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="category" class="form-label">🏷️ Category *</label>
+                <select id="category" name="category" class="form-select" required>
+                    <option value="">Select a category...</option>
+                    <option value="Cloud Computing">Cloud Computing</option>
+                    <option value="AI/ML">AI/ML</option>
+                    <option value="Security">Security</option>
+                    <option value="DevOps">DevOps</option>
+                    <option value="Open Source">Open Source</option>
+                    <option value="Automation">Automation</option>
+                    <option value="Edge Computing">Edge Computing</option>
+                    <option value="Containers">Containers</option>
+                    <option value="Networking">Networking</option>
+                    <option value="Storage">Storage</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-2">
+            <div class="form-group">
+                <label for="impact" class="form-label">📊 Expected Impact *</label>
+                <select id="impact" name="impact" class="form-select" required>
+                    <option value="">Select impact level...</option>
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="pdf-file" class="form-label">📎 Supporting Document</label>
+                <input type="file" id="pdf-file" name="pdf-file" class="form-input" 
+                       accept=".pdf" style="padding: 0.75rem;">
+                <small style="color: var(--gray-600); font-size: 0.875rem;">Optional: Upload a PDF with additional details (max 10MB)</small>
+            </div>
+        </div>
+        
+        <!-- Submit Button -->
+        <div class="form-group text-center" style="margin-top: 2rem;">
+            <button type="submit" class="btn btn-primary btn-large btn-full" id="submit-btn">
+                <i class="fas fa-rocket"></i>
+                Submit Innovation
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Results Section -->
+<div id="results-section" class="hidden" style="max-width: 800px; margin: 2rem auto 0;">
+    <!-- Success Message -->
+    <div id="success-message" class="hidden">
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            <div>
+                <strong>✅ Innovation Submitted Successfully!</strong>
+                <p style="margin-top: 0.5rem; margin-bottom: 0;">Your idea has been added to the innovation hub and is now available for collaboration and review.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Duplicate Detection -->
+    <div id="duplicate-section" class="hidden">
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>
+                <strong>⚠️ Similar Ideas Found!</strong>
+                <p id="duplicate-message" style="margin-top: 0.5rem; margin-bottom: 1rem;"></p>
+                <div id="duplicate-details"></div>
+                <button type="button" class="btn btn-secondary mt-4" id="submit-anyway-btn">
+                    Submit Anyway
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Error Message -->
+    <div id="error-message" class="hidden">
+        <div class="alert alert-error">
+            <i class="fas fa-times-circle"></i>
+            <span id="error-text">An error occurred while submitting your idea.</span>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000;">
+    <div class="bg-white p-8 rounded-2xl text-center">
+        <div class="spinner mb-4" style="margin: 0 auto;"></div>
+        <p>Submitting your innovation idea...</p>
+        <p style="font-size: 0.875rem; color: var(--gray-600); margin-top: 0.5rem;">
+            AI is checking for similar ideas and processing your submission
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let currentFormData = null;
+
+// Form submission handler
+document.getElementById('idea-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    // Validate form
+    if (!validateForm()) {
+        return;
+    }
+    
+    // Prepare form data
+    const formData = new FormData();
+    formData.append('title', document.getElementById('title').value);
+    formData.append('description', document.getElementById('description').value);
+    formData.append('abstract', document.getElementById('abstract').value);
+    formData.append('contributor', document.getElementById('contributor').value);
+    formData.append('category', document.getElementById('category').value);
+    formData.append('impact', document.getElementById('impact').value);
+    
+    const pdfFile = document.getElementById('pdf-file').files[0];
+    if (pdfFile) {
+        formData.append('pdf_file', pdfFile);
+    }
+    
+    // Store form data for potential resubmission
+    currentFormData = formData;
+    
+    await submitIdea(formData);
+});
+
+// Submit idea function
+async function submitIdea(formData, override = false) {
+    try {
+        showLoading();
+        hideAllMessages();
+        
+        if (override) {
+            formData.append('override_duplicate', 'true');
+        }
+        
+        const response = await fetch('/api/ideas/submit', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const data = await response.json();
+        hideLoading();
+        
+        if (response.status === 409) {
+            // Duplicate detected
+            showDuplicateWarning(data);
+        } else if (response.ok) {
+            // Success
+            showSuccess(data);
+            document.getElementById('idea-form').reset();
+        } else {
+            // Error
+            showError(data.error || 'Failed to submit idea');
+        }
+        
+    } catch (error) {
+        console.error('Error submitting idea:', error);
+        hideLoading();
+        showError('Network error: ' + error.message);
+    }
+}
+
+// Form validation
+function validateForm() {
+    const requiredFields = ['title', 'description', 'contributor', 'category', 'impact'];
+    let isValid = true;
+    
+    requiredFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (!field.value.trim()) {
+            field.style.borderColor = 'var(--red-hat-red)';
+            isValid = false;
+        } else {
+            field.style.borderColor = 'var(--gray-300)';
+        }
+    });
+    
+    if (!isValid) {
+        showError('Please fill in all required fields marked with *');
+        // Scroll to first empty field
+        const firstEmpty = requiredFields.find(id => !document.getElementById(id).value.trim());
+        if (firstEmpty) {
+            document.getElementById(firstEmpty).focus();
+        }
+    }
+    
+    return isValid;
+}
+
+// Show duplicate warning
+function showDuplicateWarning(data) {
+    const section = document.getElementById('duplicate-section');
+    const message = document.getElementById('duplicate-message');
+    const details = document.getElementById('duplicate-details');
+    
+    message.textContent = data.message || 'Similar ideas were found in the system.';
+    
+    if (data.duplicates && data.duplicates.length > 0) {
+        const duplicatesHtml = data.duplicates.map(dup => `
+            <div style="background: white; padding: 1rem; border-radius: 0.5rem; margin-bottom: 1rem; border: 1px solid var(--gray-300);">
+                <h4 style="margin: 0 0 0.5rem 0; color: var(--gray-900);">
+                    ${dup.title} by ${dup.contributor}
+                </h4>
+                <p style="margin: 0 0 0.5rem 0; color: var(--gray-600); font-size: 0.875rem;">
+                    ${dup.similarity}% similar
+                </p>
+                ${dup.ai_summary ? `<p style="margin: 0; color: var(--gray-700); font-size: 0.875rem;">${dup.ai_summary}</p>` : ''}
+                ${dup.comparison_context ? `<p style="margin: 0.5rem 0 0 0; color: var(--gray-600); font-size: 0.875rem;"><strong>Why similar:</strong> ${dup.comparison_context}</p>` : ''}
+            </div>
+        `).join('');
+        
+        details.innerHTML = `
+            <div style="margin-top: 1rem;">
+                <strong>Similar Ideas Found:</strong>
+                ${duplicatesHtml}
+            </div>
+        `;
+    }
+    
+    section.classList.remove('hidden');
+    document.getElementById('results-section').classList.remove('hidden');
+    scrollToResults();
+}
+
+// Show success message
+function showSuccess(data) {
+    document.getElementById('success-message').classList.remove('hidden');
+    document.getElementById('results-section').classList.remove('hidden');
+    scrollToResults();
+}
+
+// Show error message
+function showError(message) {
+    document.getElementById('error-text').textContent = message;
+    document.getElementById('error-message').classList.remove('hidden');
+    document.getElementById('results-section').classList.remove('hidden');
+    scrollToResults();
+}
+
+// Hide all messages
+function hideAllMessages() {
+    document.getElementById('success-message').classList.add('hidden');
+    document.getElementById('duplicate-section').classList.add('hidden');
+    document.getElementById('error-message').classList.add('hidden');
+    document.getElementById('results-section').classList.add('hidden');
+}
+
+// Loading functions
+function showLoading() {
+    document.getElementById('loading-overlay').style.display = 'flex';
+}
+
+function hideLoading() {
+    document.getElementById('loading-overlay').style.display = 'none';
+}
+
+// Scroll to results
+function scrollToResults() {
+    setTimeout(() => {
+        document.getElementById('results-section').scrollIntoView({ 
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }, 100);
+}
+
+// Submit anyway handler
+document.getElementById('submit-anyway-btn').addEventListener('click', function() {
+    if (currentFormData) {
+        submitIdea(currentFormData, true);
+    }
+});
+
+// File validation
+document.getElementById('pdf-file').addEventListener('change', function() {
+    const file = this.files[0];
+    if (file) {
+        if (file.type !== 'application/pdf') {
+            showError('Please select a PDF file only.');
+            this.value = '';
+            return;
+        }
+        
+        if (file.size > 10 * 1024 * 1024) { // 10MB
+            showError('PDF file must be smaller than 10MB.');
+            this.value = '';
+            return;
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Red Hat Idea Hub{% endblock %}</title>
+    
+    <!-- Red Hat Theme CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/red-hat-theme.css') }}">
+    
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <h1 class="header-title">
+                <i class="fas fa-lightbulb"></i>
+                Red Hat Idea Hub
+            </h1>
+            <p class="header-subtitle">Where Innovation Meets Excellence</p>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="nav-container">
+        <div class="nav-content">
+            <a href="{{ url_for('dashboard') }}" class="nav-button {% if request.endpoint == 'dashboard' %}active{% endif %}">
+                <i class="fas fa-chart-dashboard"></i>
+                Dashboard
+            </a>
+            <a href="{{ url_for('submit_idea') }}" class="nav-button {% if request.endpoint == 'submit_idea' %}active{% endif %}">
+                <i class="fas fa-plus-circle"></i>
+                Submit Idea
+            </a>
+            <a href="{{ url_for('search_ideas') }}" class="nav-button {% if request.endpoint == 'search_ideas' %}active{% endif %}">
+                <i class="fas fa-search"></i>
+                Search Ideas
+            </a>
+            <a href="{{ url_for('browse_ideas') }}" class="nav-button {% if request.endpoint == 'browse_ideas' %}active{% endif %}">
+                <i class="fas fa-list"></i>
+                Browse Ideas
+            </a>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-container">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2025 Red Hat Idea Hub. Built for Innovation Teams.</p>
+            <p>Empowering collaborative innovation through intelligent idea management</p>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

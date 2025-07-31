@@ -48,7 +48,7 @@ Last Updated: 2025
 """
 
 import logging
-from flask import Flask
+from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_cors import CORS
 
 # Import our modular components
@@ -101,7 +101,42 @@ def create_app():
     # This modular approach keeps routes organized by functionality
     register_blueprints(app)
     
+    # Register frontend routes for the new UI
+    register_frontend_routes(app)
+    
     return app
+
+#=============================================================================
+# FRONTEND ROUTES - NEW WEB UI
+#=============================================================================
+
+def register_frontend_routes(app):
+    """Register routes for the new Flask-based UI"""
+    
+    @app.route('/')
+    def dashboard():
+        """Main dashboard page"""
+        return render_template('dashboard.html')
+    
+    @app.route('/submit')
+    def submit_idea():
+        """Submit idea page"""
+        return render_template('submit.html')
+    
+    @app.route('/search')
+    def search_ideas():
+        """Search ideas page"""
+        return render_template('search.html')
+    
+    @app.route('/browse')
+    def browse_ideas():
+        """Browse ideas page"""
+        return render_template('browse.html')
+    
+    @app.route('/health-check')
+    def health_check():
+        """Quick health check page"""
+        return render_template('health.html')
 
 #=============================================================================
 # MAIN APPLICATION ENTRY POINT
@@ -126,9 +161,16 @@ def main():
     app = create_app()
     
     # Display startup banner and information
-    print("🚀 Starting Red Hat Idea Hub - Modular API Backend")
-    print("📝 Based on idea_borad.ipynb notebook patterns")
-    print("\n🔍 Available endpoints:")
+    print("🚀 Starting Red Hat Idea Hub - Modern Web Application")
+    print("📝 Flask backend with modern HTML/CSS/JS frontend")
+    print("\n🎨 Web Interface:")
+    print("  GET  / - Main Dashboard")
+    print("  GET  /submit - Submit Innovation Ideas")
+    print("  GET  /search - AI-Powered Search")
+    print("  GET  /browse - Browse All Ideas")
+    print("  GET  /health-check - System Health Monitor")
+    
+    print("\n🔍 API endpoints:")
     
     # Health and Status endpoints
     print("  GET  /api/health - Health check")
@@ -150,17 +192,19 @@ def main():
     print("  GET  /api/dashboard/trends - Trend analysis")
     
     # Display configuration information
-    print(f"\n🌐 Server starting on http://localhost:5001")
+    print(f"\n🌐 Web Application: http://localhost:5001")
+    print(f"🌐 API Server: http://localhost:5001/api")
     print(f"🗄️  Database: {Config.DB_CONFIG['dbname']}")
     print(f"🤖 AI Service: {'Enabled' if Config.GEMINI_API_KEY else 'Disabled (set GEMINI_API_KEY)'}")
     print(f"📊 Vector Store: {Config.VECTOR_TABLE_NAME}")
+    print(f"\n💡 Open http://localhost:5001 in your browser to access the Idea Hub")
     
     # Start the Flask development server
     # Note: For production, use a WSGI server like gunicorn
     app.run(
         debug=Config.DEBUG,        # Enable/disable debug mode
         host='0.0.0.0',           # Listen on all interfaces
-        port=5001                 # API server port (must match frontend)
+        port=5001,                  # API server port (must match frontend)               
     )
 
 #=============================================================================

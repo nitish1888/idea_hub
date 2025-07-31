@@ -1,0 +1,516 @@
+{% extends "base.html" %}
+
+{% block title %}Browse Ideas - Red Hat Idea Hub{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2 class="page-title">Browse Ideas</h2>
+    <p class="page-subtitle">Explore all innovation ideas in our growing collection</p>
+</div>
+
+<!-- Filters -->
+<div class="card mb-8">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-filter text-red"></i>
+            Filter Ideas
+        </h3>
+        <p class="card-description">Filter ideas by category, impact level, or contributor</p>
+    </div>
+    
+    <div class="grid grid-cols-3">
+        <div class="form-group">
+            <label for="category-filter" class="form-label">Category</label>
+            <select id="category-filter" class="form-select">
+                <option value="">All Categories</option>
+                <option value="Cloud Computing">Cloud Computing</option>
+                <option value="AI/ML">AI/ML</option>
+                <option value="Security">Security</option>
+                <option value="DevOps">DevOps</option>
+                <option value="Open Source">Open Source</option>
+                <option value="Automation">Automation</option>
+                <option value="Edge Computing">Edge Computing</option>
+                <option value="Containers">Containers</option>
+                <option value="Networking">Networking</option>
+                <option value="Storage">Storage</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="impact-filter" class="form-label">Impact Level</label>
+            <select id="impact-filter" class="form-select">
+                <option value="">All Impact Levels</option>
+                <option value="High">High Impact</option>
+                <option value="Medium">Medium Impact</option>
+                <option value="Low">Low Impact</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="contributor-filter" class="form-label">Contributor</label>
+            <select id="contributor-filter" class="form-select">
+                <option value="">All Contributors</option>
+                <!-- Options will be populated dynamically -->
+            </select>
+        </div>
+    </div>
+    
+    <div class="text-center mt-4">
+        <button type="button" class="btn btn-secondary" id="clear-filters-btn">
+            <i class="fas fa-eraser"></i>
+            Clear Filters
+        </button>
+    </div>
+</div>
+
+<!-- Ideas Grid -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-lightbulb text-red"></i>
+            Innovation Ideas
+        </h3>
+        <p class="card-description" id="ideas-count">Loading ideas...</p>
+    </div>
+    
+    <div id="ideas-container">
+        <!-- Ideas will be loaded here -->
+    </div>
+    
+    <!-- Pagination -->
+    <div id="pagination-container" class="text-center mt-8">
+        <!-- Pagination will be added here -->
+    </div>
+</div>
+
+<!-- Idea Details Modal -->
+<div id="idea-modal" class="modal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; padding: 2rem;">
+    <div class="modal-content" style="background: white; border-radius: 1rem; max-width: 800px; margin: 2rem auto; max-height: calc(100vh - 4rem); overflow-y: auto;">
+        <div class="modal-header" style="padding: 2rem 2rem 1rem; border-bottom: 1px solid var(--gray-200);">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <h2 id="modal-title" style="margin: 0; color: var(--gray-900);"></h2>
+                <button class="modal-close" style="background: none; border: none; font-size: 1.5rem; color: var(--gray-500); cursor: pointer; padding: 0.5rem;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+        <div class="modal-body" style="padding: 2rem;">
+            <div id="modal-content">
+                <!-- Idea details will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000;">
+    <div class="bg-white p-8 rounded-2xl text-center">
+        <div class="spinner mb-4" style="margin: 0 auto;"></div>
+        <p>Loading innovation ideas...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let allIdeas = [];
+let filteredIdeas = [];
+let currentPage = 1;
+const ideasPerPage = 6;
+
+// Load all ideas on page load
+document.addEventListener('DOMContentLoaded', function() {
+    loadIdeas();
+    setupEventListeners();
+});
+
+// Setup event listeners
+function setupEventListeners() {
+    // Filter change handlers
+    document.getElementById('category-filter').addEventListener('change', applyFilters);
+    document.getElementById('impact-filter').addEventListener('change', applyFilters);
+    document.getElementById('contributor-filter').addEventListener('change', applyFilters);
+    
+    // Clear filters
+    document.getElementById('clear-filters-btn').addEventListener('click', clearFilters);
+    
+    // Modal close handlers
+    document.querySelector('.modal-close').addEventListener('click', closeModal);
+    document.getElementById('idea-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeModal();
+        }
+    });
+}
+
+// Load ideas from API
+async function loadIdeas() {
+    try {
+        showLoading();
+        
+        const response = await fetch('/api/ideas');
+        const data = await response.json();
+        
+        if (response.ok) {
+            allIdeas = data.ideas;
+            filteredIdeas = [...allIdeas];
+            populateContributorFilter();
+            updateIdeasCount();
+            displayIdeas();
+        } else {
+            showError('Failed to load ideas: ' + (data.error || 'Unknown error'));
+        }
+        
+        hideLoading();
+        
+    } catch (error) {
+        console.error('Error loading ideas:', error);
+        hideLoading();
+        showError('Network error: ' + error.message);
+    }
+}
+
+// Populate contributor filter dropdown
+function populateContributorFilter() {
+    const contributorSelect = document.getElementById('contributor-filter');
+    const contributors = [...new Set(allIdeas.map(idea => idea.contributor))].sort();
+    
+    // Clear existing options (except the first "All Contributors")
+    contributorSelect.innerHTML = '<option value="">All Contributors</option>';
+    
+    contributors.forEach(contributor => {
+        const option = document.createElement('option');
+        option.value = contributor;
+        option.textContent = contributor;
+        contributorSelect.appendChild(option);
+    });
+}
+
+// Apply filters
+function applyFilters() {
+    const categoryFilter = document.getElementById('category-filter').value;
+    const impactFilter = document.getElementById('impact-filter').value;
+    const contributorFilter = document.getElementById('contributor-filter').value;
+    
+    filteredIdeas = allIdeas.filter(idea => {
+        return (!categoryFilter || idea.category === categoryFilter) &&
+               (!impactFilter || idea.impact === impactFilter) &&
+               (!contributorFilter || idea.contributor === contributorFilter);
+    });
+    
+    currentPage = 1;
+    updateIdeasCount();
+    displayIdeas();
+}
+
+// Clear all filters
+function clearFilters() {
+    document.getElementById('category-filter').value = '';
+    document.getElementById('impact-filter').value = '';
+    document.getElementById('contributor-filter').value = '';
+    
+    filteredIdeas = [...allIdeas];
+    currentPage = 1;
+    updateIdeasCount();
+    displayIdeas();
+}
+
+// Update ideas count
+function updateIdeasCount() {
+    const countElement = document.getElementById('ideas-count');
+    const total = allIdeas.length;
+    const filtered = filteredIdeas.length;
+    
+    if (filtered === total) {
+        countElement.textContent = `Showing all ${total} ideas`;
+    } else {
+        countElement.textContent = `Showing ${filtered} of ${total} ideas`;
+    }
+}
+
+// Display ideas with pagination
+function displayIdeas() {
+    const container = document.getElementById('ideas-container');
+    
+    if (filteredIdeas.length === 0) {
+        container.innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <strong>No Ideas Found</strong>
+                    <p style="margin-top: 0.5rem; margin-bottom: 0;">
+                        Try adjusting your filters or clear them to see all ideas.
+                    </p>
+                </div>
+            </div>
+        `;
+        document.getElementById('pagination-container').innerHTML = '';
+        return;
+    }
+    
+    const startIndex = (currentPage - 1) * ideasPerPage;
+    const endIndex = startIndex + ideasPerPage;
+    const pageIdeas = filteredIdeas.slice(startIndex, endIndex);
+    
+    const ideasHtml = pageIdeas.map(idea => `
+        <div class="idea-card" style="background: white; border: 1px solid var(--gray-200); border-radius: 1rem; padding: 1.5rem; margin-bottom: 1.5rem; transition: var(--transition-all); cursor: pointer;" onclick="showIdeaDetails(${idea.id})">
+            <div style="display: flex; justify-content: between; align-items: flex-start; margin-bottom: 1rem;">
+                <div style="flex: 1;">
+                    <h4 style="margin: 0 0 0.75rem 0; color: var(--gray-900); font-size: 1.25rem; line-height: 1.3;">
+                        ${idea.title}
+                    </h4>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;">
+                        <span style="background: var(--red-100); color: var(--red-800); padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.875rem; font-weight: 500;">
+                            <i class="fas fa-user"></i> ${idea.contributor}
+                        </span>
+                        <span style="background: var(--gray-100); color: var(--gray-700); padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.875rem; font-weight: 500;">
+                            <i class="fas fa-tag"></i> ${idea.category}
+                        </span>
+                        <span style="background: ${getImpactBadgeStyle(idea.impact)}; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.875rem; font-weight: 500;">
+                            <i class="fas fa-chart-line"></i> ${idea.impact} Impact
+                        </span>
+                        ${idea.pdf_filename ? `
+                            <span style="background: var(--blue-100); color: var(--blue-800); padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.875rem; font-weight: 500;">
+                                <i class="fas fa-file-pdf"></i> PDF Attached
+                            </span>
+                        ` : ''}
+                    </div>
+                </div>
+                <div style="color: var(--gray-400); font-size: 0.875rem;">
+                    ${formatDate(idea.created_at)}
+                </div>
+            </div>
+            
+            <p style="color: var(--gray-700); margin-bottom: 1rem; line-height: 1.6;">
+                ${idea.description.length > 150 ? idea.description.substring(0, 150) + '...' : idea.description}
+            </p>
+            
+            ${idea.abstract ? `
+                <div style="background: var(--gray-50); padding: 1rem; border-radius: 0.5rem; border-left: 4px solid var(--red-hat-red);">
+                    <strong style="color: var(--gray-700); font-size: 0.875rem;">Executive Summary:</strong>
+                    <p style="margin: 0.5rem 0 0 0; color: var(--gray-600); font-size: 0.875rem;">
+                        ${idea.abstract.length > 100 ? idea.abstract.substring(0, 100) + '...' : idea.abstract}
+                    </p>
+                </div>
+            ` : ''}
+            
+            <div style="margin-top: 1rem; text-align: right;">
+                <span style="color: var(--red-hat-red); font-weight: 600; font-size: 0.875rem;">
+                    Click to view details <i class="fas fa-arrow-right"></i>
+                </span>
+            </div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = ideasHtml;
+    
+    // Add hover effects
+    setTimeout(() => {
+        document.querySelectorAll('.idea-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.boxShadow = 'var(--shadow-lg)';
+                this.style.borderColor = 'var(--red-300)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = 'var(--shadow-sm)';
+                this.style.borderColor = 'var(--gray-200)';
+            });
+        });
+    }, 100);
+    
+    displayPagination();
+}
+
+// Display pagination
+function displayPagination() {
+    const container = document.getElementById('pagination-container');
+    const totalPages = Math.ceil(filteredIdeas.length / ideasPerPage);
+    
+    if (totalPages <= 1) {
+        container.innerHTML = '';
+        return;
+    }
+    
+    let paginationHtml = '<div style="display: flex; justify-content: center; gap: 0.5rem; align-items: center;">';
+    
+    // Previous button
+    if (currentPage > 1) {
+        paginationHtml += `<button class="pagination-btn" onclick="changePage(${currentPage - 1})">
+            <i class="fas fa-chevron-left"></i> Previous
+        </button>`;
+    }
+    
+    // Page numbers
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === currentPage) {
+            paginationHtml += `<button class="pagination-btn active">${i}</button>`;
+        } else {
+            paginationHtml += `<button class="pagination-btn" onclick="changePage(${i})">${i}</button>`;
+        }
+    }
+    
+    // Next button
+    if (currentPage < totalPages) {
+        paginationHtml += `<button class="pagination-btn" onclick="changePage(${currentPage + 1})">
+            Next <i class="fas fa-chevron-right"></i>
+        </button>`;
+    }
+    
+    paginationHtml += '</div>';
+    container.innerHTML = paginationHtml;
+}
+
+// Change page
+function changePage(page) {
+    currentPage = page;
+    displayIdeas();
+    
+    // Scroll to top of ideas
+    document.getElementById('ideas-container').scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+    });
+}
+
+// Show idea details in modal
+function showIdeaDetails(ideaId) {
+    const idea = allIdeas.find(i => i.id === ideaId);
+    if (!idea) return;
+    
+    document.getElementById('modal-title').textContent = idea.title;
+    
+    const modalContent = `
+        <div style="margin-bottom: 2rem;">
+            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem;">
+                <span style="background: var(--red-100); color: var(--red-800); padding: 0.5rem 1rem; border-radius: 1rem; font-weight: 500;">
+                    <i class="fas fa-user"></i> ${idea.contributor}
+                </span>
+                <span style="background: var(--gray-100); color: var(--gray-700); padding: 0.5rem 1rem; border-radius: 1rem; font-weight: 500;">
+                    <i class="fas fa-tag"></i> ${idea.category}
+                </span>
+                <span style="background: ${getImpactBadgeStyle(idea.impact)}; padding: 0.5rem 1rem; border-radius: 1rem; font-weight: 500;">
+                    <i class="fas fa-chart-line"></i> ${idea.impact} Impact
+                </span>
+                <span style="background: var(--blue-100); color: var(--blue-800); padding: 0.5rem 1rem; border-radius: 1rem; font-weight: 500;">
+                    <i class="fas fa-calendar"></i> ${formatDate(idea.created_at)}
+                </span>
+                ${idea.pdf_filename ? `
+                    <span style="background: var(--green-100); color: var(--green-800); padding: 0.5rem 1rem; border-radius: 1rem; font-weight: 500;">
+                        <i class="fas fa-file-pdf"></i> PDF: ${idea.pdf_filename}
+                    </span>
+                ` : ''}
+            </div>
+            
+            <div style="margin-bottom: 2rem;">
+                <h4 style="color: var(--gray-900); margin-bottom: 1rem;">Description</h4>
+                <p style="color: var(--gray-700); line-height: 1.6; white-space: pre-wrap;">${idea.description}</p>
+            </div>
+            
+            ${idea.abstract ? `
+                <div style="margin-bottom: 2rem;">
+                    <h4 style="color: var(--gray-900); margin-bottom: 1rem;">Executive Summary</h4>
+                    <div style="background: var(--gray-50); padding: 1.5rem; border-radius: 0.5rem; border-left: 4px solid var(--red-hat-red);">
+                        <p style="color: var(--gray-700); line-height: 1.6; margin: 0; white-space: pre-wrap;">${idea.abstract}</p>
+                    </div>
+                </div>
+            ` : ''}
+            
+            <div style="background: var(--red-50); padding: 1.5rem; border-radius: 0.5rem; border: 1px solid var(--red-200);">
+                <h5 style="color: var(--red-800); margin-bottom: 0.5rem;">
+                    <i class="fas fa-info-circle"></i> Interested in this idea?
+                </h5>
+                <p style="color: var(--red-700); margin: 0; font-size: 0.875rem;">
+                    Reach out to ${idea.contributor} to discuss collaboration opportunities or learn more about this innovation.
+                </p>
+            </div>
+        </div>
+    `;
+    
+    document.getElementById('modal-content').innerHTML = modalContent;
+    document.getElementById('idea-modal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+// Close modal
+function closeModal() {
+    document.getElementById('idea-modal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+}
+
+// Helper functions
+function getImpactBadgeStyle(impact) {
+    switch(impact) {
+        case 'High': return 'var(--red-100); color: var(--red-800)';
+        case 'Medium': return 'var(--yellow-100); color: var(--yellow-800)';
+        case 'Low': return 'var(--gray-100); color: var(--gray-700)';
+        default: return 'var(--gray-100); color: var(--gray-700)';
+    }
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'Unknown';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric' 
+    });
+}
+
+function showError(message) {
+    const container = document.getElementById('ideas-container');
+    container.innerHTML = `
+        <div class="alert alert-error">
+            <i class="fas fa-times-circle"></i>
+            <span>${message}</span>
+        </div>
+    `;
+}
+
+function showLoading() {
+    document.getElementById('loading-overlay').style.display = 'flex';
+}
+
+function hideLoading() {
+    document.getElementById('loading-overlay').style.display = 'none';
+}
+
+// Add pagination button styles
+const style = document.createElement('style');
+style.textContent = `
+    .pagination-btn {
+        background: white;
+        border: 2px solid var(--gray-300);
+        color: var(--gray-700);
+        padding: 0.5rem 1rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        transition: var(--transition-all);
+        font-weight: 500;
+    }
+    
+    .pagination-btn:hover {
+        background: var(--red-50);
+        border-color: var(--red-300);
+        color: var(--red-700);
+    }
+    
+    .pagination-btn.active {
+        background: var(--red-hat-red);
+        border-color: var(--red-hat-red);
+        color: white;
+    }
+    
+    .pagination-btn.active:hover {
+        background: var(--red-hat-red-dark);
+        border-color: var(--red-hat-red-dark);
+        color: white;
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Red Hat Idea Hub{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2 class="page-title">Innovation Dashboard</h2>
+    <p class="page-subtitle">Real-time insights into our collective innovation landscape</p>
+</div>
+
+<!-- Health Status -->
+<div id="health-status" class="mb-8"></div>
+
+<!-- KPI Metrics -->
+<div id="kpi-container" class="grid grid-cols-4 mb-8">
+    <div class="metric-card">
+        <div class="metric-value" id="total-ideas">-</div>
+        <div class="metric-label">Total Ideas</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-value" id="total-contributors">-</div>
+        <div class="metric-label">Contributors</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-value" id="high-impact-ideas">-</div>
+        <div class="metric-label">High Impact</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-value" id="recent-submissions">-</div>
+        <div class="metric-label">Recent (7 days)</div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="grid grid-cols-2 mb-8">
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Ideas by Category</h3>
+            <p class="card-description">Distribution of innovation ideas across different technology categories</p>
+        </div>
+        <canvas id="categoryChart"></canvas>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Impact Distribution</h3>
+            <p class="card-description">Expected impact levels of submitted ideas</p>
+        </div>
+        <canvas id="impactChart"></canvas>
+    </div>
+</div>
+
+<!-- AI Insights Section -->
+<div class="card">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-brain text-red"></i>
+            AI Strategic Insights
+        </h3>
+        <p class="card-description">AI-generated analysis of innovation patterns and trends</p>
+    </div>
+    <div id="ai-insights" class="space-y-4">
+        <div class="alert alert-info">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Loading AI insights...</span>
+        </div>
+    </div>
+</div>
+
+<!-- Loading Overlay -->
+<div id="loading-overlay" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000;">
+    <div class="bg-white p-8 rounded-2xl text-center">
+        <div class="spinner mb-4" style="margin: 0 auto;"></div>
+        <p>Loading dashboard data...</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Dashboard JavaScript
+let categoryChart = null;
+let impactChart = null;
+
+// Check API health first
+async function checkHealth() {
+    try {
+        const response = await fetch('/api/health');
+        const data = await response.json();
+        
+        const healthStatus = document.getElementById('health-status');
+        if (data.status === 'healthy') {
+            healthStatus.innerHTML = `
+                <div class="alert alert-success">
+                    <i class="fas fa-check-circle"></i>
+                    <span>✅ Innovation Hub is online and ready!</span>
+                </div>
+            `;
+            return true;
+        } else {
+            throw new Error('API unhealthy');
+        }
+    } catch (error) {
+        const healthStatus = document.getElementById('health-status');
+        healthStatus.innerHTML = `
+            <div class="alert alert-error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>❌ Cannot connect to API server. Please ensure the Flask backend is running.</span>
+            </div>
+        `;
+        return false;
+    }
+}
+
+// Load dashboard data
+async function loadDashboardData() {
+    try {
+        showLoading();
+        
+        // Load KPIs
+        const kpiResponse = await fetch('/api/dashboard/kpis');
+        const kpiData = await kpiResponse.json();
+        
+        // Update KPI metrics
+        document.getElementById('total-ideas').textContent = kpiData.total_ideas;
+        document.getElementById('total-contributors').textContent = kpiData.unique_contributors;
+        document.getElementById('high-impact-ideas').textContent = kpiData.impact_breakdown?.High || 0;
+        document.getElementById('recent-submissions').textContent = kpiData.recent_submissions;
+        
+        // Create charts
+        createCategoryChart(kpiData.category_breakdown);
+        createImpactChart(kpiData.impact_breakdown);
+        
+        // Load AI insights
+        const insightsResponse = await fetch('/api/dashboard/insights');
+        const insightsData = await insightsResponse.json();
+        displayAIInsights(insightsData.insights);
+        
+        hideLoading();
+        
+    } catch (error) {
+        console.error('Error loading dashboard data:', error);
+        hideLoading();
+        
+        const container = document.getElementById('ai-insights');
+        container.innerHTML = `
+            <div class="alert alert-error">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>Error loading dashboard data: ${error.message}</span>
+            </div>
+        `;
+    }
+}
+
+// Create category chart
+function createCategoryChart(data) {
+    const ctx = document.getElementById('categoryChart').getContext('2d');
+    
+    if (categoryChart) {
+        categoryChart.destroy();
+    }
+    
+    categoryChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: Object.keys(data),
+            datasets: [{
+                data: Object.values(data),
+                backgroundColor: [
+                    '#ee0000', '#cc0000', '#a30000', '#ff3333', '#ff6666',
+                    '#dc2626', '#b91c1c', '#991b1b', '#7f1d1d'
+                ],
+                borderWidth: 2,
+                borderColor: '#ffffff'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Create impact chart
+function createImpactChart(data) {
+    const ctx = document.getElementById('impactChart').getContext('2d');
+    
+    if (impactChart) {
+        impactChart.destroy();
+    }
+    
+    impactChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(data),
+            datasets: [{
+                label: 'Number of Ideas',
+                data: Object.values(data),
+                backgroundColor: ['#6b7280', '#f59e0b', '#ee0000'],
+                borderColor: ['#4b5563', '#d97706', '#cc0000'],
+                borderWidth: 2,
+                borderRadius: 8,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+}
+
+// Display AI insights
+function displayAIInsights(insights) {
+    const container = document.getElementById('ai-insights');
+    
+    if (!insights || insights.length === 0) {
+        container.innerHTML = `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <span>No AI insights available at this time.</span>
+            </div>
+        `;
+        return;
+    }
+    
+    const insightsHtml = insights.map((insight, index) => `
+        <div class="alert alert-info">
+            <i class="fas fa-lightbulb"></i>
+            <div>
+                <strong>Strategic Insight #${index + 1}</strong>
+                <p style="margin-top: 0.5rem; margin-bottom: 0;">${insight}</p>
+            </div>
+        </div>
+    `).join('');
+    
+    container.innerHTML = insightsHtml;
+}
+
+// Loading functions
+function showLoading() {
+    document.getElementById('loading-overlay').style.display = 'flex';
+}
+
+function hideLoading() {
+    document.getElementById('loading-overlay').style.display = 'none';
+}
+
+// Initialize dashboard
+document.addEventListener('DOMContentLoaded', async function() {
+    const isHealthy = await checkHealth();
+    if (isHealthy) {
+        await loadDashboardData();
+    }
+});
+</script>
+{% endblock %}

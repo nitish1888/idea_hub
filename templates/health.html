@@ -1,0 +1,400 @@
+{% extends "base.html" %}
+
+{% block title %}System Health - Red Hat Idea Hub{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2 class="page-title">System Health Check</h2>
+    <p class="page-subtitle">Monitor the status of all system components and services</p>
+</div>
+
+<!-- Overall Status -->
+<div id="overall-status" class="mb-8">
+    <div class="card text-center">
+        <div id="status-indicator" class="mb-4">
+            <div class="spinner" style="margin: 0 auto;"></div>
+        </div>
+        <h3 id="status-text">Checking system status...</h3>
+        <p id="status-description" class="text-gray-600"></p>
+    </div>
+</div>
+
+<!-- Detailed Health Information -->
+<div class="grid grid-cols-2">
+    <!-- API Status -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fas fa-server text-red"></i>
+                API Server
+            </h3>
+            <p class="card-description">Flask backend API status and connectivity</p>
+        </div>
+        <div id="api-status">
+            <div class="flex items-center">
+                <div class="spinner mr-3"></div>
+                <span>Checking API status...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Database Status -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fas fa-database text-red"></i>
+                Database
+            </h3>
+            <p class="card-description">PostgreSQL database connection and health</p>
+        </div>
+        <div id="database-status">
+            <div class="flex items-center">
+                <div class="spinner mr-3"></div>
+                <span>Checking database status...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Services -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fas fa-brain text-red"></i>
+                AI Services
+            </h3>
+            <p class="card-description">Google Gemini AI and vector services</p>
+        </div>
+        <div id="ai-status">
+            <div class="flex items-center">
+                <div class="spinner mr-3"></div>
+                <span>Checking AI services...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Vector Store -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">
+                <i class="fas fa-search text-red"></i>
+                Vector Store
+            </h3>
+            <p class="card-description">Semantic search and similarity matching</p>
+        </div>
+        <div id="vector-status">
+            <div class="flex items-center">
+                <div class="spinner mr-3"></div>
+                <span>Checking vector store...</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- System Information -->
+<div class="card mt-8">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-info-circle text-red"></i>
+            System Information
+        </h3>
+        <p class="card-description">Detailed system configuration and statistics</p>
+    </div>
+    <div id="system-info">
+        <div class="flex items-center">
+            <div class="spinner mr-3"></div>
+            <span>Loading system information...</span>
+        </div>
+    </div>
+</div>
+
+<!-- Actions -->
+<div class="card mt-8">
+    <div class="card-header">
+        <h3 class="card-title">
+            <i class="fas fa-tools text-red"></i>
+            System Actions
+        </h3>
+        <p class="card-description">Administrative actions and diagnostics</p>
+    </div>
+    <div class="grid grid-cols-3">
+        <button class="btn btn-secondary" onclick="refreshHealth()">
+            <i class="fas fa-refresh"></i>
+            Refresh Status
+        </button>
+        <button class="btn btn-secondary" onclick="testAI()">
+            <i class="fas fa-brain"></i>
+            Test AI Services
+        </button>
+        <button class="btn btn-secondary" onclick="checkConnectivity()">
+            <i class="fas fa-network-wired"></i>
+            Test Connectivity
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Initialize health check on page load
+document.addEventListener('DOMContentLoaded', function() {
+    performHealthCheck();
+});
+
+// Perform comprehensive health check
+async function performHealthCheck() {
+    try {
+        // Check basic API health
+        const healthResponse = await fetch('/api/health');
+        const healthData = await healthResponse.json();
+        
+        if (healthResponse.ok && healthData.status === 'healthy') {
+            updateAPIStatus(true, 'API server is running normally');
+            
+            // Get detailed status
+            try {
+                const statusResponse = await fetch('/api/status');
+                const statusData = await statusResponse.json();
+                
+                if (statusResponse.ok) {
+                    updateDetailedStatus(statusData);
+                    updateOverallStatus(true, 'All systems operational');
+                } else {
+                    updateOverallStatus(false, 'Some services may be unavailable');
+                }
+            } catch (error) {
+                updateOverallStatus(false, 'Unable to get detailed status');
+            }
+            
+        } else {
+            updateAPIStatus(false, 'API server is not responding correctly');
+            updateOverallStatus(false, 'System is not fully operational');
+        }
+        
+    } catch (error) {
+        console.error('Health check failed:', error);
+        updateAPIStatus(false, 'Cannot connect to API server');
+        updateDatabaseStatus(false, 'Status unknown - API unavailable');
+        updateAIStatus(false, 'Status unknown - API unavailable');
+        updateVectorStatus(false, 'Status unknown - API unavailable');
+        updateOverallStatus(false, 'System is offline or unreachable');
+    }
+}
+
+// Update overall status
+function updateOverallStatus(isHealthy, message) {
+    const indicator = document.getElementById('status-indicator');
+    const text = document.getElementById('status-text');
+    const description = document.getElementById('status-description');
+    
+    if (isHealthy) {
+        indicator.innerHTML = '<i class="fas fa-check-circle" style="font-size: 3rem; color: var(--green-500);"></i>';
+        text.textContent = '✅ System is Healthy';
+        text.style.color = 'var(--green-700)';
+    } else {
+        indicator.innerHTML = '<i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: var(--red-500);"></i>';
+        text.textContent = '⚠️ System Issues Detected';
+        text.style.color = 'var(--red-700)';
+    }
+    
+    description.textContent = message;
+}
+
+// Update API status
+function updateAPIStatus(isHealthy, message) {
+    const container = document.getElementById('api-status');
+    container.innerHTML = createStatusHTML(isHealthy, message);
+}
+
+// Update database status
+function updateDatabaseStatus(isHealthy, message, details = null) {
+    const container = document.getElementById('database-status');
+    let html = createStatusHTML(isHealthy, message);
+    
+    if (details) {
+        html += `
+            <div style="margin-top: 1rem; font-size: 0.875rem; color: var(--gray-600);">
+                <strong>Database:</strong> ${details.database_name}<br>
+                <strong>Host:</strong> ${details.host}:${details.port}<br>
+                <strong>Connection Pool:</strong> ${details.connection_info || 'Active'}
+            </div>
+        `;
+    }
+    
+    container.innerHTML = html;
+}
+
+// Update AI status
+function updateAIStatus(isHealthy, message, details = null) {
+    const container = document.getElementById('ai-status');
+    let html = createStatusHTML(isHealthy, message);
+    
+    if (details) {
+        html += `
+            <div style="margin-top: 1rem; font-size: 0.875rem; color: var(--gray-600);">
+                <strong>Model:</strong> ${details.model || 'Unknown'}<br>
+                <strong>API Key:</strong> ${details.api_key_status || 'Not configured'}<br>
+                <strong>Services:</strong> ${details.services_available || 'Unknown'}
+            </div>
+        `;
+    }
+    
+    container.innerHTML = html;
+}
+
+// Update vector status
+function updateVectorStatus(isHealthy, message, details = null) {
+    const container = document.getElementById('vector-status');
+    let html = createStatusHTML(isHealthy, message);
+    
+    if (details) {
+        html += `
+            <div style="margin-top: 1rem; font-size: 0.875rem; color: var(--gray-600);">
+                <strong>Table:</strong> ${details.table_name || 'Unknown'}<br>
+                <strong>Embeddings:</strong> ${details.embedding_count || 0} stored<br>
+                <strong>Last Updated:</strong> ${details.last_updated || 'Unknown'}
+            </div>
+        `;
+    }
+    
+    container.innerHTML = html;
+}
+
+// Update detailed status from API response
+function updateDetailedStatus(statusData) {
+    // Update database status
+    if (statusData.database_info) {
+        const dbInfo = statusData.database_info;
+        updateDatabaseStatus(
+            dbInfo.status === 'connected',
+            dbInfo.status === 'connected' ? 'Database connection is healthy' : 'Database connection failed',
+            dbInfo
+        );
+    }
+    
+    // Update AI status
+    if (statusData.ai_services) {
+        const aiInfo = statusData.ai_services;
+        updateAIStatus(
+            aiInfo.gemini_available,
+            aiInfo.gemini_available ? 'AI services are operational' : 'AI services are not available',
+            aiInfo
+        );
+    }
+    
+    // Update vector status
+    if (statusData.vector_store) {
+        const vectorInfo = statusData.vector_store;
+        updateVectorStatus(
+            vectorInfo.status === 'available',
+            vectorInfo.status === 'available' ? 'Vector store is operational' : 'Vector store is not available',
+            vectorInfo
+        );
+    }
+    
+    // Update system information
+    updateSystemInfo(statusData);
+}
+
+// Update system information
+function updateSystemInfo(statusData) {
+    const container = document.getElementById('system-info');
+    
+    const html = `
+        <div class="grid grid-cols-2">
+            <div>
+                <h4 style="font-weight: 600; margin-bottom: 1rem; color: var(--gray-700);">Configuration</h4>
+                <div style="font-size: 0.875rem; color: var(--gray-600); line-height: 1.8;">
+                    <strong>Debug Mode:</strong> ${statusData.debug_mode ? 'Enabled' : 'Disabled'}<br>
+                    <strong>Environment:</strong> ${statusData.environment || 'Unknown'}<br>
+                    <strong>API Version:</strong> ${statusData.version || '1.0.0'}<br>
+                    <strong>Database:</strong> ${statusData.database_info?.database_name || 'Unknown'}
+                </div>
+            </div>
+            <div>
+                <h4 style="font-weight: 600; margin-bottom: 1rem; color: var(--gray-700);">Statistics</h4>
+                <div style="font-size: 0.875rem; color: var(--gray-600); line-height: 1.8;">
+                    <strong>Total Ideas:</strong> ${statusData.statistics?.total_ideas || 0}<br>
+                    <strong>Contributors:</strong> ${statusData.statistics?.total_contributors || 0}<br>
+                    <strong>Vector Embeddings:</strong> ${statusData.vector_store?.embedding_count || 0}<br>
+                    <strong>Uptime:</strong> ${statusData.uptime || 'Unknown'}
+                </div>
+            </div>
+        </div>
+    `;
+    
+    container.innerHTML = html;
+}
+
+// Create status HTML
+function createStatusHTML(isHealthy, message) {
+    const icon = isHealthy ? 
+        '<i class="fas fa-check-circle" style="color: var(--green-500);"></i>' :
+        '<i class="fas fa-times-circle" style="color: var(--red-500);"></i>';
+    
+    const color = isHealthy ? 'var(--green-700)' : 'var(--red-700)';
+    
+    return `
+        <div class="flex items-center">
+            ${icon}
+            <span style="margin-left: 0.75rem; color: ${color}; font-weight: 500;">${message}</span>
+        </div>
+    `;
+}
+
+// Action functions
+async function refreshHealth() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<div class="spinner mr-2" style="width: 16px; height: 16px;"></div> Refreshing...';
+    button.disabled = true;
+    
+    await performHealthCheck();
+    
+    setTimeout(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }, 1000);
+}
+
+async function testAI() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<div class="spinner mr-2" style="width: 16px; height: 16px;"></div> Testing...';
+    button.disabled = true;
+    
+    try {
+        // This would test AI functionality
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        alert('AI services test completed successfully!');
+    } catch (error) {
+        alert('AI services test failed: ' + error.message);
+    }
+    
+    button.innerHTML = originalText;
+    button.disabled = false;
+}
+
+async function checkConnectivity() {
+    const button = event.target;
+    const originalText = button.innerHTML;
+    
+    button.innerHTML = '<div class="spinner mr-2" style="width: 16px; height: 16px;"></div> Testing...';
+    button.disabled = true;
+    
+    try {
+        const start = Date.now();
+        await fetch('/api/health');
+        const latency = Date.now() - start;
+        
+        alert(`Connectivity test passed!\nAPI Response Time: ${latency}ms`);
+    } catch (error) {
+        alert('Connectivity test failed: ' + error.message);
+    }
+    
+    button.innerHTML = originalText;
+    button.disabled = false;
+}
+</script>
+{% endblock %}

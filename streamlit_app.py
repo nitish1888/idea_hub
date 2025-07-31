@@ -2361,8 +2361,8 @@ def check_health():
             if health_data.get("status") == "healthy":
                 st.success("✅ Innovation Hub is online and ready!")
                 return True
-        st.error(f"❌ API server returned status code: {response.status_code}")
-        return False
+            st.error(f"❌ API server returned status code: {response.status_code}")
+            return False
     except requests.exceptions.ConnectionError:
         st.error("❌ Cannot connect to the API server. Please start with: `python app.py`")
         return False
