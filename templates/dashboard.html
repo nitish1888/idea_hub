@@ -11,58 +11,53 @@
 <!-- Health Status -->
 <div id="health-status" class="mb-8"></div>
 
-<!-- KPI Metrics -->
-<div id="kpi-container" class="grid grid-cols-4 mb-8">
-    <div class="metric-card">
-        <div class="metric-value" id="total-ideas">-</div>
-        <div class="metric-label">Total Ideas</div>
+<!-- Quick Stats Row -->
+<div class="grid grid-cols-4 mb-6" style="gap: 1rem;">
+    <div class="metric-card" style="padding: 1.5rem;">
+        <div class="metric-value" id="total-ideas" style="font-size: 2rem;">-</div>
+        <div class="metric-label">Ideas</div>
     </div>
-    <div class="metric-card">
-        <div class="metric-value" id="total-contributors">-</div>
+    <div class="metric-card" style="padding: 1.5rem;">
+        <div class="metric-value" id="total-contributors" style="font-size: 2rem;">-</div>
         <div class="metric-label">Contributors</div>
     </div>
-    <div class="metric-card">
-        <div class="metric-value" id="high-impact-ideas">-</div>
+    <div class="metric-card" style="padding: 1.5rem;">
+        <div class="metric-value" id="high-impact-ideas" style="font-size: 2rem;">-</div>
         <div class="metric-label">High Impact</div>
     </div>
-    <div class="metric-card">
-        <div class="metric-value" id="recent-submissions">-</div>
-        <div class="metric-label">Recent (7 days)</div>
+    <div class="metric-card" style="padding: 1.5rem;">
+        <div class="metric-value" id="recent-submissions" style="font-size: 2rem;">-</div>
+        <div class="metric-label">Recent</div>
     </div>
 </div>
 
-<!-- Charts Section -->
-<div class="grid grid-cols-2 mb-8">
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Ideas by Category</h3>
-            <p class="card-description">Distribution of innovation ideas across different technology categories</p>
+<!-- Compact Charts Section -->
+<div class="grid grid-cols-2 mb-6" style="gap: 1.5rem;">
+    <div class="card" style="padding: 1.5rem;">
+        <h4 style="margin-bottom: 1rem; font-size: 1.1rem; color: var(--gray-900);">Ideas by Category</h4>
+        <div style="height: 200px; position: relative;">
+            <canvas id="categoryChart"></canvas>
         </div>
-        <canvas id="categoryChart"></canvas>
     </div>
     
-    <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Impact Distribution</h3>
-            <p class="card-description">Expected impact levels of submitted ideas</p>
+    <div class="card" style="padding: 1.5rem;">
+        <h4 style="margin-bottom: 1rem; font-size: 1.1rem; color: var(--gray-900);">Impact Distribution</h4>
+        <div style="height: 200px; position: relative;">
+            <canvas id="impactChart"></canvas>
         </div>
-        <canvas id="impactChart"></canvas>
     </div>
 </div>
 
-<!-- AI Insights Section -->
-<div class="card">
-    <div class="card-header">
-        <h3 class="card-title">
-            <i class="fas fa-brain text-red"></i>
-            AI Strategic Insights
-        </h3>
-        <p class="card-description">AI-generated analysis of innovation patterns and trends</p>
-    </div>
-    <div id="ai-insights" class="space-y-4">
-        <div class="alert alert-info">
-            <i class="fas fa-spinner fa-spin"></i>
-            <span>Loading AI insights...</span>
+<!-- Compact AI Insights -->
+<div class="card" style="padding: 1.5rem;">
+    <h4 style="margin-bottom: 1rem; font-size: 1.1rem; color: var(--gray-900);">
+        <i class="fas fa-lightbulb text-red"></i>
+        Quick Insights
+    </h4>
+    <div id="ai-insights">
+        <div class="alert alert-info" style="padding: 1rem; margin: 0;">
+            <i class="fas fa-info-circle"></i>
+            <span>Loading insights...</span>
         </div>
     </div>
 </div>
@@ -115,40 +110,56 @@ async function checkHealth() {
 // Load dashboard data
 async function loadDashboardData() {
     try {
-        showLoading();
-        
-        // Load KPIs
+        // Load KPIs first (faster)
         const kpiResponse = await fetch('/api/dashboard/kpis');
-        const kpiData = await kpiResponse.json();
+        if (kpiResponse.ok) {
+            const kpiData = await kpiResponse.json();
+            
+            // Update KPI metrics immediately
+            document.getElementById('total-ideas').textContent = kpiData.total_ideas || 0;
+            document.getElementById('total-contributors').textContent = kpiData.unique_contributors || 0;
+            document.getElementById('high-impact-ideas').textContent = kpiData.impact_breakdown?.High || 0;
+            document.getElementById('recent-submissions').textContent = kpiData.recent_submissions || 0;
+            
+            // Create charts if data exists
+            if (kpiData.category_breakdown && Object.keys(kpiData.category_breakdown).length > 0) {
+                createCategoryChart(kpiData.category_breakdown);
+            } else {
+                document.getElementById('categoryChart').parentElement.innerHTML = '<p style="text-align: center; color: var(--gray-500); padding: 2rem;">No category data available</p>';
+            }
+            
+            if (kpiData.impact_breakdown && Object.keys(kpiData.impact_breakdown).length > 0) {
+                createImpactChart(kpiData.impact_breakdown);
+            } else {
+                document.getElementById('impactChart').parentElement.innerHTML = '<p style="text-align: center; color: var(--gray-500); padding: 2rem;">No impact data available</p>';
+            }
+        }
         
-        // Update KPI metrics
-        document.getElementById('total-ideas').textContent = kpiData.total_ideas;
-        document.getElementById('total-contributors').textContent = kpiData.unique_contributors;
-        document.getElementById('high-impact-ideas').textContent = kpiData.impact_breakdown?.High || 0;
-        document.getElementById('recent-submissions').textContent = kpiData.recent_submissions;
-        
-        // Create charts
-        createCategoryChart(kpiData.category_breakdown);
-        createImpactChart(kpiData.impact_breakdown);
-        
-        // Load AI insights
-        const insightsResponse = await fetch('/api/dashboard/insights');
-        const insightsData = await insightsResponse.json();
-        displayAIInsights(insightsData.insights);
-        
-        hideLoading();
+        // Load AI insights in background (don't block UI)
+        setTimeout(async () => {
+            try {
+                const insightsResponse = await fetch('/api/dashboard/insights');
+                if (insightsResponse.ok) {
+                    const insightsData = await insightsResponse.json();
+                    displayAIInsights(insightsData.insights);
+                } else {
+                    displayAIInsights(null);
+                }
+            } catch (error) {
+                displayAIInsights(null);
+            }
+        }, 100);
         
     } catch (error) {
         console.error('Error loading dashboard data:', error);
-        hideLoading();
         
-        const container = document.getElementById('ai-insights');
-        container.innerHTML = `
-            <div class="alert alert-error">
-                <i class="fas fa-exclamation-triangle"></i>
-                <span>Error loading dashboard data: ${error.message}</span>
-            </div>
-        `;
+        // Show error state but don't block everything
+        document.getElementById('total-ideas').textContent = '?';
+        document.getElementById('total-contributors').textContent = '?';
+        document.getElementById('high-impact-ideas').textContent = '?';
+        document.getElementById('recent-submissions').textContent = '?';
+        
+        displayAIInsights(null);
     }
 }
 
@@ -170,7 +181,7 @@ function createCategoryChart(data) {
                     '#ee0000', '#cc0000', '#a30000', '#ff3333', '#ff6666',
                     '#dc2626', '#b91c1c', '#991b1b', '#7f1d1d'
                 ],
-                borderWidth: 2,
+                borderWidth: 1,
                 borderColor: '#ffffff'
             }]
         },
@@ -181,8 +192,9 @@ function createCategoryChart(data) {
                 legend: {
                     position: 'bottom',
                     labels: {
-                        padding: 20,
-                        usePointStyle: true
+                        padding: 10,
+                        usePointStyle: true,
+                        font: { size: 11 }
                     }
                 }
             }
@@ -203,12 +215,12 @@ function createImpactChart(data) {
         data: {
             labels: Object.keys(data),
             datasets: [{
-                label: 'Number of Ideas',
+                label: 'Ideas',
                 data: Object.values(data),
                 backgroundColor: ['#6b7280', '#f59e0b', '#ee0000'],
                 borderColor: ['#4b5563', '#d97706', '#cc0000'],
-                borderWidth: 2,
-                borderRadius: 8,
+                borderWidth: 1,
+                borderRadius: 4,
                 borderSkipped: false
             }]
         },
@@ -216,16 +228,15 @@ function createImpactChart(data) {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    display: false
-                }
+                legend: { display: false }
             },
             scales: {
                 y: {
                     beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
+                    ticks: { stepSize: 1, font: { size: 10 } }
+                },
+                x: {
+                    ticks: { font: { size: 10 } }
                 }
             }
         }
@@ -238,21 +249,18 @@ function displayAIInsights(insights) {
     
     if (!insights || insights.length === 0) {
         container.innerHTML = `
-            <div class="alert alert-info">
-                <i class="fas fa-info-circle"></i>
-                <span>No AI insights available at this time.</span>
+            <div style="color: var(--gray-600); font-style: italic; text-align: center; padding: 1rem;">
+                <i class="fas fa-robot"></i> AI insights require valid API key configuration
             </div>
         `;
         return;
     }
     
-    const insightsHtml = insights.map((insight, index) => `
-        <div class="alert alert-info">
-            <i class="fas fa-lightbulb"></i>
-            <div>
-                <strong>Strategic Insight #${index + 1}</strong>
-                <p style="margin-top: 0.5rem; margin-bottom: 0;">${insight}</p>
-            </div>
+    // Show only first 2 insights to keep it compact
+    const limitedInsights = insights.slice(0, 2);
+    const insightsHtml = limitedInsights.map((insight, index) => `
+        <div style="background: var(--gray-50); padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem; border-left: 3px solid var(--red-hat-red);">
+            <p style="margin: 0; font-size: 0.9rem; color: var(--gray-700);">${insight}</p>
         </div>
     `).join('');
     
