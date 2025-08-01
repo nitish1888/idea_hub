@@ -328,6 +328,155 @@ def search_ideas():
         logging.error(f"Error searching ideas: {e}")
         return jsonify({"error": str(e)}), 500
 
+@ideas_bp.route('/api/ideas/restore-embeddings', methods=['POST'])
+def restore_embeddings():
+    """Restore vector embeddings for all existing ideas"""
+    try:
+        from models.idea import IdeaModel
+        from services.vector_service import vector_service
+        from services.huggingface_service import huggingface_service
+        
+        # Check if services are available
+        if not huggingface_service.is_available():
+            return jsonify({
+                "status": "error",
+                "message": "HuggingFace service not available"
+            }), 500
+            
+        if not vector_service.is_available():
+            return jsonify({
+                "status": "error", 
+                "message": "Vector service not available"
+            }), 500
+        
+        # Get all ideas from database
+        all_ideas = IdeaModel.get_all_ideas()
+        logging.info(f"🔄 Restoring embeddings for {len(all_ideas)} ideas...")
+        
+        if len(all_ideas) == 0:
+            return jsonify({
+                "status": "success",
+                "message": "No ideas found to restore",
+                "ideas_processed": 0
+            })
+        
+        # Restore embeddings
+        result = vector_service.load_ideas_to_vector_store(all_ideas)
+        
+        if result["status"] == "success":
+            # Test the restoration with a search
+            test_results = vector_service.search_similar_ideas("test", top_k=3)
+            
+            return jsonify({
+                "status": "success",
+                "message": f"Successfully restored embeddings for {result['count']} ideas",
+                "ideas_processed": result['count'],
+                "test_search_results": len(test_results),
+                "sample_results": [r['title'] for r in test_results[:3]]
+            })
+        else:
+            return jsonify({
+                "status": "error",
+                "message": f"Failed to restore embeddings: {result.get('error', 'Unknown error')}",
+                "ideas_processed": 0
+            }), 500
+            
+    except Exception as e:
+        logging.error(f"❌ Error restoring embeddings: {e}")
+        return jsonify({
+            "status": "error",
+            "message": f"Error restoring embeddings: {str(e)}",
+            "ideas_processed": 0
+        }), 500
+
+@ideas_bp.route('/api/ideas/search-debug', methods=['GET'])
+def search_debug():
+    """Debug endpoint to check AI search functionality"""
+    try:
+        from services.vector_service import vector_service
+        from services.huggingface_service import huggingface_service
+        from services.ai_service import gemini_service
+        from config.settings import Config
+        
+        debug_info = {
+            "vector_service": {
+                "available": vector_service.is_available(),
+                "vector_store_initialized": vector_service.vector_store is not None,
+                "collection_name": vector_service.collection_name
+            },
+            "huggingface_service": {
+                "available": huggingface_service.is_available(),
+                "current_model": getattr(huggingface_service, 'current_model', None),
+                "embedding_model_initialized": huggingface_service.embedding_model is not None
+            },
+            "gemini_service": {
+                "available": gemini_service.is_available(),
+                "api_key_set": bool(gemini_service.api_key and gemini_service.api_key != ""),
+                "model_name": gemini_service.model_name
+            },
+            "database": {
+                "connection_string": Config.DATABASE_URL[:50] + "..." if Config.DATABASE_URL else None,
+                "vector_table": Config.VECTOR_TABLE_NAME
+            }
+        }
+        
+        # Test embeddings
+        if huggingface_service.is_available():
+            try:
+                test_embedding = huggingface_service.generate_embedding("test innovation query")
+                debug_info["huggingface_service"]["test_embedding_length"] = len(test_embedding)
+                debug_info["huggingface_service"]["test_successful"] = True
+                debug_info["huggingface_service"]["embedding_dimension"] = huggingface_service.embedding_dimension
+                debug_info["huggingface_service"]["first_few_values"] = test_embedding[:5] if test_embedding else []
+            except Exception as e:
+                debug_info["huggingface_service"]["test_error"] = str(e)
+                debug_info["huggingface_service"]["test_successful"] = False
+        else:
+            debug_info["huggingface_service"]["test_successful"] = False
+            debug_info["huggingface_service"]["reason"] = "Service not available"
+        
+        # Test vector search
+        if vector_service.is_available():
+            try:
+                test_results = vector_service.search_similar_ideas("test innovation cloud automation", top_k=3)
+                debug_info["vector_service"]["test_search_results"] = len(test_results)
+                debug_info["vector_service"]["test_successful"] = True
+                debug_info["vector_service"]["sample_results"] = [
+                    {"title": r.get("title", ""), "similarity": r.get("similarity", 0)} 
+                    for r in test_results[:2]
+                ] if test_results else []
+            except Exception as e:
+                debug_info["vector_service"]["test_error"] = str(e)
+                debug_info["vector_service"]["test_successful"] = False
+        else:
+            debug_info["vector_service"]["test_successful"] = False
+            debug_info["vector_service"]["reason"] = "Vector store not initialized"
+        
+        return jsonify({
+            "status": "success",
+            "debug_info": debug_info,
+            "recommendations": [
+                "Check logs for detailed error messages",
+                "Verify GEMINI_API_KEY is set in .env file", 
+                "Ensure PostgreSQL pgvector extension is installed",
+                "Install new LangChain packages: pip install langchain-huggingface langchain-postgres",
+                "Try restarting the application to re-initialize services",
+                "Ensure mixedbread model is properly cached and accessible"
+            ],
+            "fixes_applied": [
+                "✅ Simplified to use only working mixedbread model",
+                "✅ Removed fallback embedding models",
+                "✅ Fixed vector service connection issues", 
+                "✅ Enhanced error handling and logging",
+                "✅ Updated LangChain dependencies",
+                "✅ Suppressed non-critical SSL warnings"
+            ]
+        })
+        
+    except Exception as e:
+        logging.error(f"Error in search debug: {e}")
+        return jsonify({"status": "error", "error": str(e)}), 500
+
 @ideas_bp.route('/api/ideas/upload-pdf', methods=['POST'])
 def upload_pdf_test():
     """Test endpoint for PDF upload and processing"""

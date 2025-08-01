@@ -90,7 +90,9 @@
         <div class="modal-header" style="padding: 2rem 2rem 1rem; border-bottom: 1px solid var(--gray-200);">
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                 <h2 id="modal-title" style="margin: 0; color: var(--gray-900);"></h2>
-                <button class="modal-close" style="background: none; border: none; font-size: 1.5rem; color: var(--gray-500); cursor: pointer; padding: 0.5rem;">
+                <button class="modal-close" style="background: none; border: none; font-size: 1.5rem; color: var(--gray-500); cursor: pointer; padding: 0.5rem; border-radius: 0.25rem; transition: all 0.2s ease;" 
+                        onmouseover="this.style.backgroundColor='var(--gray-100)'; this.style.color='var(--gray-700)'" 
+                        onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--gray-500)'">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
@@ -135,11 +137,29 @@ function setupEventListeners() {
     // Clear filters
     document.getElementById('clear-filters-btn').addEventListener('click', clearFilters);
     
-    // Modal close handlers
-    document.querySelector('.modal-close').addEventListener('click', closeModal);
-    document.getElementById('idea-modal').addEventListener('click', function(e) {
-        if (e.target === this) {
+    // Modal close handlers using event delegation for better reliability
+    document.addEventListener('click', function(e) {
+        // Close button click (works for button and icon inside)
+        if (e.target.closest('.modal-close')) {
+            e.preventDefault();
+            e.stopPropagation();
             closeModal();
+            return;
+        }
+        
+        // Click outside modal content
+        if (e.target.id === 'idea-modal') {
+            closeModal();
+        }
+    });
+    
+    // ESC key to close modal
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('idea-modal');
+            if (modal && modal.style.display === 'block') {
+                closeModal();
+            }
         }
     });
 }
@@ -437,8 +457,22 @@ function showIdeaDetails(ideaId) {
 
 // Close modal
 function closeModal() {
-    document.getElementById('idea-modal').style.display = 'none';
-    document.body.style.overflow = 'auto';
+    const modal = document.getElementById('idea-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = 'auto';
+        
+        // Clear modal content for better performance
+        const modalContent = document.getElementById('modal-content');
+        if (modalContent) {
+            modalContent.innerHTML = '';
+        }
+        
+        const modalTitle = document.getElementById('modal-title');
+        if (modalTitle) {
+            modalTitle.textContent = '';
+        }
+    }
 }
 
 // Helper functions

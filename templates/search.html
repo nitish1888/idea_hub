@@ -194,10 +194,13 @@ function displayResults(data, query) {
     const resultsDiv = document.getElementById('search-results');
     const description = document.getElementById('results-description');
     
-    // Update description
-    description.textContent = `Found ${data.results.length} ideas related to "${query}"`;
+    // Ensure results array exists
+    const results = data.results || [];
     
-    if (data.results.length === 0) {
+    // Update description
+    description.textContent = `Found ${results.length} ideas related to "${query}"`;
+    
+    if (results.length === 0) {
         resultsDiv.innerHTML = `
             <div class="alert alert-info">
                 <i class="fas fa-info-circle"></i>
@@ -210,53 +213,62 @@ function displayResults(data, query) {
             </div>
         `;
     } else {
-        const resultsHtml = data.results.map((idea, index) => `
+        const resultsHtml = results.map((idea, index) => {
+            // Add null checking for all idea properties
+            const title = idea?.title || 'Untitled';
+            const contributor = idea?.contributor || 'Unknown';
+            const category = idea?.category || 'General';
+            const impact = idea?.impact || 'Medium';
+            const similarity = idea?.similarity || 0;
+            const content_preview = idea?.content_preview || '';
+            
+            return `
             <div class="result-card" style="background: ${index % 2 === 0 ? 'var(--gray-50)' : 'white'}; padding: 1.5rem; border-radius: 0.75rem; margin-bottom: 1rem; border: 1px solid var(--gray-200);">
-                <div style="display: flex; justify-content: between; align-items: flex-start; margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
                     <div style="flex: 1;">
                         <h4 style="margin: 0 0 0.5rem 0; color: var(--gray-900); font-size: 1.25rem;">
-                            ${idea.title}
+                            ${title}
                         </h4>
                         <div style="display: flex; gap: 1rem; margin-bottom: 0.75rem;">
                             <span style="background: var(--red-100); color: var(--red-800); padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.875rem; font-weight: 500;">
-                                <i class="fas fa-user"></i> ${idea.contributor}
+                                <i class="fas fa-user"></i> ${contributor}
                             </span>
                             <span style="background: var(--gray-100); color: var(--gray-700); padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.875rem; font-weight: 500;">
-                                <i class="fas fa-tag"></i> ${idea.category}
+                                <i class="fas fa-tag"></i> ${category}
                             </span>
-                            <span style="background: ${getImpactColor(idea.impact)}; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.875rem; font-weight: 500;">
-                                <i class="fas fa-chart-line"></i> ${idea.impact} Impact
+                            <span style="background: ${getImpactColor(impact)}; color: ${getImpactTextColor(impact)}; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.875rem; font-weight: 500;">
+                                <i class="fas fa-chart-line"></i> ${impact} Impact
                             </span>
                         </div>
                     </div>
                     <div style="text-align: right;">
                         <div style="background: var(--red-hat-red); color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600;">
-                            ${Math.round(idea.similarity)}% Match
+                            ${Math.round(similarity)}% Match
                         </div>
                     </div>
                 </div>
                 
                 <p style="color: var(--gray-700); margin-bottom: 1rem; line-height: 1.6;">
-                    ${idea.description.length > 300 ? idea.description.substring(0, 300) + '...' : idea.description}
+                    ${content_preview && content_preview.length > 300 ? content_preview.substring(0, 300) + '...' : content_preview}
                 </p>
                 
-                ${idea.abstract ? `
+                ${idea?.abstract ? `
                     <div style="background: white; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid var(--red-hat-red); margin-bottom: 1rem;">
                         <strong style="color: var(--gray-700); font-size: 0.875rem;">Executive Summary:</strong>
                         <p style="margin: 0.5rem 0 0 0; color: var(--gray-600); font-size: 0.875rem;">${idea.abstract}</p>
                     </div>
                 ` : ''}
                 
-                ${idea.relevance_explanation ? `
+                ${idea?.relevance_explanation ? `
                     <div style="background: var(--blue-50); color: var(--blue-800); padding: 1rem; border-radius: 0.5rem; border-left: 4px solid var(--blue-500);">
                         <i class="fas fa-lightbulb"></i>
                         <strong>Why this matches:</strong> ${idea.relevance_explanation}
                     </div>
                 ` : ''}
             </div>
-        `).join('');
+        `});
         
-        resultsDiv.innerHTML = resultsHtml;
+        resultsDiv.innerHTML = resultsHtml.join('');
     }
     
     container.classList.remove('hidden');
@@ -273,10 +285,20 @@ function displayResults(data, query) {
 // Get impact color
 function getImpactColor(impact) {
     switch(impact) {
-        case 'High': return 'var(--red-100); color: var(--red-800)';
-        case 'Medium': return 'var(--yellow-100); color: var(--yellow-800)';
-        case 'Low': return 'var(--gray-100); color: var(--gray-700)';
-        default: return 'var(--gray-100); color: var(--gray-700)';
+        case 'High': return 'var(--red-100)';
+        case 'Medium': return 'var(--yellow-100)';
+        case 'Low': return 'var(--gray-100)';
+        default: return 'var(--gray-100)';
+    }
+}
+
+// Get impact text color
+function getImpactTextColor(impact) {
+    switch(impact) {
+        case 'High': return 'var(--red-800)';
+        case 'Medium': return 'var(--yellow-800)';
+        case 'Low': return 'var(--gray-700)';
+        default: return 'var(--gray-700)';
     }
 }
 

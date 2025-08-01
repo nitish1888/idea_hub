@@ -48,8 +48,12 @@ Last Updated: 2025
 """
 
 import logging
+import warnings
 from flask import Flask, render_template, request, jsonify, redirect, url_for
 from flask_cors import CORS
+
+# Suppress non-critical SSL warnings in development
+warnings.filterwarnings("ignore", message="urllib3 v2 only supports OpenSSL 1.1.1+")
 
 # Import our modular components
 from config.settings import Config

@@ -1,42 +1,64 @@
 """
 HuggingFace Embedding Service
-Using the same model and approach as idea_borad.ipynb notebook
+Using the working mixedbread model path
 """
 
 import logging
 import os
-from langchain_community.embeddings import HuggingFaceEmbeddings
+try:
+    # Try new langchain-huggingface package first
+    from langchain_huggingface import HuggingFaceEmbeddings
+    logging.info("✅ Using new langchain-huggingface package")
+except ImportError:
+    try:
+        # Fallback to community package
+        from langchain_community.embeddings import HuggingFaceEmbeddings
+        logging.warning("⚠️ Using deprecated langchain_community.embeddings - consider upgrading to langchain-huggingface")
+    except ImportError:
+        logging.error("❌ No HuggingFace embeddings package found")
 
 class HuggingFaceEmbeddingService:
-    """Service for HuggingFace embeddings using the same model as the notebook"""
+    """Service for HuggingFace embeddings using the working mixedbread model"""
     
     def __init__(self):
-        # Use the exact model path from your notebook
-        self.model_path = "/Users/nitsingh/.cache/huggingface/hub/models--mixedbread-ai--mxbai-embed-large-v1/snapshots/e7857440379da569f68f19e8403b69cd7be26e50"
+        # Use only the working mixedbread model path
+        self.model_path = "/Users/riskumar/.cache/huggingface/hub/models--mixedbread-ai--mxbai-embed-large-v1/snapshots/db9d1fe0f31addb4978201b2bf3e577f3f8900d2"
         self.embedding_model = None
+        self.current_model = None
+        self.embedding_dimension = 1024  # mixedbread dimension
         self._initialize()
     
     def _initialize(self):
-        """Initialize HuggingFace embeddings"""
+        """Initialize HuggingFace embeddings with mixedbread model"""
         try:
-            # Check if model exists locally first
-            if os.path.exists(self.model_path):
-                logging.info(f"Using local model: {self.model_path}")
-                model_name = self.model_path
-            else:
-                # Fallback to model name if local path doesn't exist
-                logging.info("Local model not found, downloading mixedbread-ai/mxbai-embed-large-v1")
-                model_name = "mixedbread-ai/mxbai-embed-large-v1"
+            if not os.path.exists(self.model_path):
+                logging.error(f"❌ Mixedbread model not found at: {self.model_path}")
+                self.embedding_model = None
+                return
             
-            # Initialize exactly like in your notebook
+            logging.info(f"🔄 Initializing mixedbread model: {self.model_path}")
+            
+            # Initialize the embedding model
             self.embedding_model = HuggingFaceEmbeddings(
-                model_name=model_name
+                model_name=self.model_path,
+                model_kwargs={'device': 'cpu'}  # Force CPU for stability
             )
             
-            logging.info("✅ HuggingFace embeddings initialized successfully")
+            # Test the model works
+            logging.info("🧪 Testing mixedbread model...")
+            test_embedding = self.embedding_model.embed_query("test embedding")
             
+            if test_embedding and len(test_embedding) > 0:
+                self.current_model = self.model_path
+                self.embedding_dimension = len(test_embedding)
+                logging.info(f"✅ Mixedbread model initialized successfully!")
+                logging.info(f"📐 Embedding dimension: {self.embedding_dimension}")
+            else:
+                logging.error("❌ Mixedbread model test failed - empty embedding returned")
+                self.embedding_model = None
+                
         except Exception as e:
-            logging.error(f"❌ HuggingFace embeddings initialization failed: {e}")
+            logging.error(f"❌ Failed to initialize mixedbread model: {str(e)}")
             self.embedding_model = None
     
     def is_available(self):
@@ -48,16 +70,22 @@ class HuggingFaceEmbeddingService:
         return self.embedding_model
     
     def generate_embedding(self, text):
-        """Generate embedding for a single text"""
+        """Generate embedding for a single text using mixedbread model"""
         if not self.is_available():
-            return [0.0] * 1024  # mxbai-embed-large-v1 has 1024 dimensions
+            logging.error("❌ Mixedbread embedding service not available")
+            return None
         
         try:
             # Use embed_query for single text
-            return self.embedding_model.embed_query(text)
+            embedding = self.embedding_model.embed_query(text)
+            if embedding and len(embedding) > 0:
+                return embedding
+            else:
+                logging.error("❌ Empty embedding returned from mixedbread model")
+                return None
         except Exception as e:
-            logging.error(f"Error generating embedding: {e}")
-            return [0.0] * 1024
+            logging.error(f"❌ Error generating embedding with mixedbread: {e}")
+            return None
     
     def calculate_similarity(self, embedding1, embedding2):
         """Calculate cosine similarity between two embeddings"""
@@ -79,4 +107,4 @@ class HuggingFaceEmbeddingService:
             return 0.0
 
 # Global instance
-huggingface_service = HuggingFaceEmbeddingService() 
+huggingface_service = HuggingFaceEmbeddingService()

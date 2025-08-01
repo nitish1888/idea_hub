@@ -7,9 +7,12 @@ numpy
 requests
 langchain
 langchain-community
+langchain-huggingface
+langchain-postgres
 sentence-transformers
 torch
 transformers
 PyMuPDF
 Werkzeug
 Jinja2
+urllib3>=2.0.0
