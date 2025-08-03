@@ -49,6 +49,7 @@ ehthumbs.db
 Thumbs.db
 
 # Environment variables
+.env
 .env.local
 .env.development
 .env.test
@@ -106,3 +107,4 @@ node_modules/
 # Package files
 *.tgz
 *.tar.gz 
+.env
