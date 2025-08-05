@@ -110,6 +110,10 @@
                 <i class="fas fa-users"></i>
                 Contributors
             </a>
+            <a href="{{ url_for('ai_research') }}" class="nav-button {% if request.endpoint == 'ai_research' %}active{% endif %}">
+                <i class="fas fa-robot"></i>
+                AI Research
+            </a>
         </div>
     </nav>
 
@@ -117,6 +121,58 @@
     <main class="main-container">
         {% block content %}{% endblock %}
     </main>
+
+    <!-- Floating AI Assistant -->
+    <div id="floating-ai" class="floating-ai">
+        <button id="ai-toggle-btn" class="ai-toggle-btn">
+            <i class="fas fa-robot"></i>
+        </button>
+        
+        <div id="ai-chat-panel" class="ai-chat-panel" style="display: none;">
+            <div class="ai-chat-header">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-robot"></i>
+                    <span><strong>AI Research Assistant</strong></span>
+                </div>
+                <button id="ai-close-btn" class="ai-close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="ai-chat-body">
+                <div class="ai-welcome-message">
+                    <i class="fas fa-lightbulb" style="color: var(--red-hat-red);"></i>
+                    <p><strong>Quick AI Research</strong></p>
+                    <p style="font-size: 0.9rem; margin-top: 0.5rem;">Ask me anything about Red Hat innovations, market trends, or get strategic insights!</p>
+                </div>
+                
+                <div class="ai-quick-actions">
+                    <button class="ai-quick-btn" data-action="trends">
+                        <i class="fas fa-chart-line"></i> Market Trends
+                    </button>
+                    <button class="ai-quick-btn" data-action="similar">
+                        <i class="fas fa-search"></i> Find Similar Ideas
+                    </button>
+                    <button class="ai-quick-btn" data-action="feasibility">
+                        <i class="fas fa-cogs"></i> Feasibility Analysis
+                    </button>
+                </div>
+            </div>
+            
+            <div class="ai-chat-footer">
+                <div class="ai-input-group">
+                    <input type="text" id="ai-quick-input" class="ai-input" 
+                           placeholder="Ask me anything..." maxlength="200">
+                    <button id="ai-send-btn" class="ai-send-btn">
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </div>
+                <div class="ai-footer-text">
+                    Powered by MCP • <a href="{{ url_for('ai_research') }}" target="_blank">Open Full Interface</a>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Footer -->
     <footer class="footer">
@@ -185,6 +241,83 @@
             }
         });
     });
+    
+    // ===== FLOATING AI ASSISTANT ===== 
+    
+    const aiToggleBtn = document.getElementById('ai-toggle-btn');
+    const aiChatPanel = document.getElementById('ai-chat-panel');
+    const aiCloseBtn = document.getElementById('ai-close-btn');
+    const aiQuickInput = document.getElementById('ai-quick-input');
+    const aiSendBtn = document.getElementById('ai-send-btn');
+    const aiQuickButtons = document.querySelectorAll('.ai-quick-btn');
+    
+    // Toggle AI panel
+    aiToggleBtn.addEventListener('click', function() {
+        const isVisible = aiChatPanel.style.display === 'flex';
+        aiChatPanel.style.display = isVisible ? 'none' : 'flex';
+        
+        if (!isVisible) {
+            aiQuickInput.focus();
+        }
+    });
+    
+    // Close AI panel
+    aiCloseBtn.addEventListener('click', function() {
+        aiChatPanel.style.display = 'none';
+    });
+    
+    // Quick action buttons
+    aiQuickButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const action = this.dataset.action;
+            let query = '';
+            
+            switch(action) {
+                case 'trends':
+                    query = 'Analyze current innovation trends in enterprise technology and Red Hat market opportunities';
+                    break;
+                case 'similar':
+                    query = 'Find similar ideas in the Red Hat innovation database and identify potential collaboration opportunities';
+                    break;
+                case 'feasibility':
+                    query = 'Evaluate technical feasibility and implementation challenges for emerging technology ideas';
+                    break;
+            }
+            
+            openAIResearch(query);
+        });
+    });
+    
+    // Send from quick input
+    aiSendBtn.addEventListener('click', sendQuickAIRequest);
+    aiQuickInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            sendQuickAIRequest();
+        }
+    });
+    
+    function sendQuickAIRequest() {
+        const query = aiQuickInput.value.trim();
+        if (!query) return;
+        
+        openAIResearch(query);
+        aiQuickInput.value = '';
+        aiChatPanel.style.display = 'none';
+    }
+    
+    function openAIResearch(query) {
+        const aiResearchUrl = `/ai-research?query=${encodeURIComponent(query)}`;
+        window.open(aiResearchUrl, '_blank');
+    }
+    
+    // Close panel when clicking outside
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.floating-ai')) {
+            aiChatPanel.style.display = 'none';
+        }
+    });
+    
     </script>
     
     {% block extra_scripts %}{% endblock %}

@@ -58,6 +58,7 @@ warnings.filterwarnings("ignore", message="urllib3 v2 only supports OpenSSL 1.1.
 # Import our modular components
 from config.settings import Config
 from routes import register_blueprints
+from routes.mcp_routes import mcp_bp
 
 #=============================================================================
 # APPLICATION FACTORY
@@ -105,6 +106,9 @@ def create_app():
     # This modular approach keeps routes organized by functionality
     register_blueprints(app)
     
+    # Register MCP agentic AI routes
+    app.register_blueprint(mcp_bp)
+    
     # Register frontend routes for the new UI
     register_frontend_routes(app)
     
@@ -146,6 +150,11 @@ def register_frontend_routes(app):
     def contributors():
         """Contributors page"""
         return render_template('contributors.html')
+    
+    @app.route('/ai-research')
+    def ai_research():
+        """AI Research Assistant page"""
+        return render_template('ai_research.html')
     
     @app.route('/api/contributors', methods=['GET', 'POST'])
     def handle_contributors():
@@ -349,6 +358,10 @@ def main():
     print("  GET  /api/contributors/stats - Contributor statistics")
     print("  GET  /api/contributors/search - Search contributors")
     print("  GET/PUT/DELETE /api/contributors/<id> - Individual contributor operations")
+    
+    # MCP Agentic AI endpoints
+    print("  GET  /api/mcp/status - MCP agent status and capabilities")
+    print("  POST /api/mcp/research - Autonomous AI research with tool calling")
     
     # Display configuration information
     print(f"\n🌐 Web Application: http://localhost:5001")

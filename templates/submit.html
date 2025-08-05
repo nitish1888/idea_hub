@@ -88,6 +88,21 @@
             </div>
         </div>
         
+        <!-- AI Research Helper -->
+        <div class="form-group" style="margin-top: 2rem; padding: 1.5rem; background: var(--blue-50); border: 1px solid var(--blue-200); border-radius: 1rem;">
+            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                <i class="fas fa-robot" style="color: var(--red-hat-red); font-size: 1.2rem;"></i>
+                <div>
+                    <h4 style="margin: 0; color: var(--gray-900);">AI Research Assistant</h4>
+                    <p style="margin: 0; color: var(--gray-600); font-size: 0.9rem;">Research similar ideas and get AI insights before submitting</p>
+                </div>
+            </div>
+            <button type="button" class="btn btn-secondary" id="research-similar-btn" style="width: 100%;">
+                <i class="fas fa-search"></i>
+                Research Similar Ideas with AI
+            </button>
+        </div>
+
         <!-- Submit Button -->
         <div class="form-group text-center" style="margin-top: 2rem;">
             <button type="submit" class="btn btn-primary btn-large btn-full" id="submit-btn">
@@ -150,6 +165,25 @@
 {% block extra_scripts %}
 <script>
 let currentFormData = null;
+
+// AI Research Helper
+document.getElementById('research-similar-btn').addEventListener('click', async function() {
+    const title = document.getElementById('title').value.trim();
+    const description = document.getElementById('description').value.trim();
+    
+    if (!title && !description) {
+        alert('Please enter at least a title or description to research similar ideas.');
+        return;
+    }
+    
+    const researchQuery = title 
+        ? `Find similar ideas to "${title}". ${description ? `Description: ${description}` : ''}`
+        : `Research ideas similar to: ${description}`;
+    
+    // Open AI Research page with the query
+    const aiResearchUrl = `/ai-research?query=${encodeURIComponent(researchQuery)}`;
+    window.open(aiResearchUrl, '_blank');
+});
 
 // Form submission handler
 document.getElementById('idea-form').addEventListener('submit', async function(e) {

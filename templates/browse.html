@@ -315,7 +315,12 @@ function displayIdeas() {
                 </div>
             ` : ''}
             
-            <div style="margin-top: 1rem; text-align: right;">
+            <div style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                <button class="ai-insights-btn" data-idea-id="${idea.id}" data-idea-title="${idea.title.replace(/"/g, '&quot;')}" 
+                        style="background: var(--blue-100); color: var(--blue-800); border: 1px solid var(--blue-300); padding: 0.5rem 1rem; border-radius: 0.5rem; font-size: 0.875rem; cursor: pointer; transition: all 0.2s;"
+                        onclick="event.stopPropagation(); getAIInsights('${idea.title.replace(/'/g, "\\'")}', ${idea.id});">
+                    <i class="fas fa-robot"></i> AI Insights
+                </button>
                 <span style="color: var(--red-hat-red); font-weight: 600; font-size: 0.875rem;">
                     Click to view details <i class="fas fa-arrow-right"></i>
                 </span>
@@ -493,6 +498,15 @@ function formatDate(dateString) {
         month: 'short', 
         day: 'numeric' 
     });
+}
+
+// AI Insights function
+function getAIInsights(ideaTitle, ideaId) {
+    const researchQuery = `Analyze and provide strategic insights for the innovation idea: "${ideaTitle}". Include feasibility assessment, market opportunities, implementation roadmap, and recommended team skills.`;
+    
+    // Open AI Research page with the query
+    const aiResearchUrl = `/ai-research?query=${encodeURIComponent(researchQuery)}`;
+    window.open(aiResearchUrl, '_blank');
 }
 
 function showError(message) {

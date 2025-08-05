@@ -1,0 +1,517 @@
+{% extends "base.html" %}
+
+{% block title %}AI Research Assistant - Red Hat Idea Hub{% endblock %}
+
+{% block extra_head %}
+<style>
+/* AI Research Page Styles */
+.ai-research-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    gap: 2rem;
+    display: grid;
+    grid-template-columns: 1fr 350px;
+}
+
+.research-main {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.research-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.chat-interface {
+    border: 2px solid var(--gray-200);
+    border-radius: 1rem;
+    height: 500px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-header {
+    background: var(--red-hat-red);
+    color: white;
+    padding: 1rem;
+    border-radius: 1rem 1rem 0 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    background: var(--gray-50);
+}
+
+.chat-input-area {
+    padding: 1rem;
+    border-top: 1px solid var(--gray-200);
+    background: white;
+    border-radius: 0 0 1rem 1rem;
+}
+
+.chat-input-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.chat-input {
+    flex: 1;
+    padding: 0.75rem;
+    border: 1px solid var(--gray-300);
+    border-radius: 0.5rem;
+    font-size: 1rem;
+}
+
+.chat-send-btn {
+    padding: 0.75rem 1.5rem;
+    background: var(--red-hat-red);
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.chat-send-btn:hover {
+    background: var(--red-hat-dark);
+}
+
+.chat-send-btn:disabled {
+    background: var(--gray-400);
+    cursor: not-allowed;
+}
+
+.message {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-radius: 1rem;
+    max-width: 80%;
+}
+
+.message.user {
+    background: var(--red-hat-red);
+    color: white;
+    margin-left: auto;
+    border-bottom-right-radius: 0.25rem;
+}
+
+.message.assistant {
+    background: white;
+    border: 1px solid var(--gray-200);
+    border-bottom-left-radius: 0.25rem;
+}
+
+.message.system {
+    background: var(--blue-100);
+    border: 1px solid var(--blue-200);
+    color: var(--blue-800);
+    margin: 0 auto;
+    max-width: 90%;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.sidebar-card {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar-card h3 {
+    margin: 0 0 1rem 0;
+    color: var(--gray-900);
+    font-size: 1.1rem;
+}
+
+.example-btn {
+    display: block;
+    width: 100%;
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    background: var(--gray-100);
+    border: 1px solid var(--gray-300);
+    border-radius: 0.5rem;
+    text-align: left;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+}
+
+.example-btn:hover {
+    background: var(--red-hat-light);
+    border-color: var(--red-hat-red);
+}
+
+.tool-indicator {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    background: var(--green-100);
+    color: var(--green-800);
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    margin-right: 0.5rem;
+}
+
+.research-status {
+    display: none;
+    padding: 1rem;
+    background: var(--blue-50);
+    border: 1px solid var(--blue-200);
+    border-radius: 0.5rem;
+    margin-top: 1rem;
+}
+
+.typing-indicator {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--gray-600);
+    font-style: italic;
+    padding: 0.5rem 1rem;
+}
+
+.typing-dots {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.typing-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--gray-400);
+    border-radius: 50%;
+    animation: typing 1.4s infinite;
+}
+
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typing {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-10px); }
+}
+
+@media (max-width: 768px) {
+    .ai-research-container {
+        grid-template-columns: 1fr;
+        padding: 1rem;
+    }
+    
+    .research-sidebar {
+        order: -1;
+    }
+    
+    .chat-interface {
+        height: 400px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ai-research-container">
+    <!-- Main Research Interface -->
+    <div class="research-main">
+        <div style="margin-bottom: 2rem;">
+            <h1 style="color: var(--gray-900); margin: 0 0 0.5rem 0;">
+                <i class="fas fa-robot" style="color: var(--red-hat-red);"></i>
+                AI Research Assistant
+            </h1>
+            <p style="color: var(--gray-600); margin: 0; font-size: 1.1rem;">
+                Powered by <strong>MCP (Model Context Protocol)</strong> with autonomous tool calling
+            </p>
+        </div>
+
+        <!-- MCP Status -->
+        <div id="mcp-status" class="research-status">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-circle" style="color: var(--green-500);"></i>
+                <strong>MCP Agent Online</strong> - Ready for autonomous research
+            </div>
+        </div>
+
+        <!-- Chat Interface -->
+        <div class="chat-interface">
+            <div class="chat-header">
+                <i class="fas fa-brain"></i>
+                <span><strong>Intelligent Research Agent</strong></span>
+                <div style="margin-left: auto; font-size: 0.8rem;">
+                    <span id="tool-status">🔧 6 Tools Available</span>
+                </div>
+            </div>
+            
+            <div class="chat-messages" id="chat-messages">
+                <div class="message system">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Welcome to the AI Research Assistant!</strong><br>
+                    I can autonomously research ideas, analyze trends, evaluate feasibility, and provide strategic insights using Red Hat's innovation data.
+                </div>
+            </div>
+            
+            <div class="typing-indicator" id="typing-indicator">
+                <i class="fas fa-robot"></i>
+                <span>AI is researching...</span>
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+            
+            <div class="chat-input-area">
+                <div class="chat-input-group">
+                    <input type="text" id="research-input" class="chat-input" 
+                           placeholder="Ask me to research anything about Red Hat innovations..." 
+                           maxlength="500">
+                    <button id="send-research" class="chat-send-btn">
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+                <div style="font-size: 0.8rem; color: var(--gray-600); margin-top: 0.5rem;">
+                    Try: "Research AI trends in enterprise software" or "Analyze cloud infrastructure innovations"
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar -->
+    <div class="research-sidebar">
+        <!-- Quick Examples -->
+        <div class="sidebar-card">
+            <h3><i class="fas fa-lightbulb"></i> Research Examples</h3>
+            <button class="example-btn" data-query="Research blockchain opportunities for Red Hat enterprise solutions">
+                🔗 Blockchain Enterprise Opportunities
+            </button>
+            <button class="example-btn" data-query="Analyze AI/ML trends and competitive landscape for Red Hat">
+                🤖 AI/ML Market Analysis
+            </button>
+            <button class="example-btn" data-query="Evaluate feasibility of quantum computing integration with Red Hat products">
+                ⚛️ Quantum Computing Feasibility
+            </button>
+            <button class="example-btn" data-query="Research edge computing innovations and implementation roadmap">
+                📡 Edge Computing Roadmap
+            </button>
+            <button class="example-btn" data-query="Find similar ideas to 'automated DevOps pipeline' and analyze gaps">
+                🔍 Similar Ideas Analysis
+            </button>
+        </div>
+
+        <!-- Available Tools -->
+        <div class="sidebar-card">
+            <h3><i class="fas fa-toolbox"></i> AI Tools Available</h3>
+            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                <div>
+                    <span class="tool-indicator">SEARCH</span>
+                    <span style="font-size: 0.9rem;">Find similar ideas in database</span>
+                </div>
+                <div>
+                    <span class="tool-indicator">ANALYZE</span>
+                    <span style="font-size: 0.9rem;">Deep idea analysis & insights</span>
+                </div>
+                <div>
+                    <span class="tool-indicator">SKILLS</span>
+                    <span style="font-size: 0.9rem;">Match contributors to projects</span>
+                </div>
+                <div>
+                    <span class="tool-indicator">TRENDS</span>
+                    <span style="font-size: 0.9rem;">Innovation trend analysis</span>
+                </div>
+                <div>
+                    <span class="tool-indicator">FEASIBILITY</span>
+                    <span style="font-size: 0.9rem;">Technical feasibility evaluation</span>
+                </div>
+                <div>
+                    <span class="tool-indicator">ROADMAP</span>
+                    <span style="font-size: 0.9rem;">Implementation planning</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Research Tips -->
+        <div class="sidebar-card">
+            <h3><i class="fas fa-tips"></i> Research Tips</h3>
+            <ul style="margin: 0; padding-left: 1.2rem; color: var(--gray-700); font-size: 0.9rem;">
+                <li style="margin-bottom: 0.5rem;">Be specific about your research goals</li>
+                <li style="margin-bottom: 0.5rem;">Ask for comparisons and analyses</li>
+                <li style="margin-bottom: 0.5rem;">Request implementation roadmaps</li>
+                <li style="margin-bottom: 0.5rem;">Inquire about team skill matching</li>
+                <li>Ask for feasibility assessments</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+// AI Research Interface JavaScript
+document.addEventListener('DOMContentLoaded', function() {
+    const chatMessages = document.getElementById('chat-messages');
+    const researchInput = document.getElementById('research-input');
+    const sendButton = document.getElementById('send-research');
+    const typingIndicator = document.getElementById('typing-indicator');
+    const mcpStatus = document.getElementById('mcp-status');
+    const exampleButtons = document.querySelectorAll('.example-btn');
+
+    // Check MCP status on load
+    checkMCPStatus();
+    
+    // Handle URL query parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const queryFromUrl = urlParams.get('query');
+    if (queryFromUrl) {
+        researchInput.value = queryFromUrl;
+        // Auto-send the research after a short delay
+        setTimeout(() => {
+            sendResearch();
+        }, 1000);
+    }
+
+    // Example button handlers
+    exampleButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const query = this.dataset.query;
+            researchInput.value = query;
+            sendResearch();
+        });
+    });
+
+    // Send research request
+    sendButton.addEventListener('click', sendResearch);
+    researchInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendResearch();
+        }
+    });
+
+    async function checkMCPStatus() {
+        try {
+            const response = await fetch('/api/mcp/status');
+            const data = await response.json();
+            
+            if (data.available) {
+                mcpStatus.style.display = 'block';
+                mcpStatus.className = 'research-status';
+                mcpStatus.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-circle" style="color: var(--green-500);"></i>
+                        <strong>MCP Agent Online</strong> - ${data.tools_available.length} tools ready
+                    </div>`;
+            } else {
+                mcpStatus.style.display = 'block';
+                mcpStatus.className = 'research-status';
+                mcpStatus.style.background = 'var(--red-50)';
+                mcpStatus.style.borderColor = 'var(--red-200)';
+                mcpStatus.innerHTML = `
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-circle" style="color: var(--red-500);"></i>
+                        <strong>MCP Agent Offline</strong> - Check configuration
+                    </div>`;
+            }
+        } catch (error) {
+            console.error('Failed to check MCP status:', error);
+        }
+    }
+
+    async function sendResearch() {
+        const query = researchInput.value.trim();
+        if (!query) return;
+
+        // Add user message
+        addMessage('user', query);
+        researchInput.value = '';
+        
+        // Show typing indicator
+        showTyping();
+        
+        // Disable input
+        sendButton.disabled = true;
+        researchInput.disabled = true;
+
+        try {
+            const response = await fetch('/api/mcp/research', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ query: query })
+            });
+
+            const data = await response.json();
+            
+            hideTyping();
+            
+            if (data.status === 'success') {
+                // Display agent analysis
+                addMessage('assistant', data.agent_analysis || 'Research completed successfully.');
+                
+                // Show research steps if available
+                if (data.research_steps && data.research_steps.length > 0) {
+                    let stepsMessage = '📋 **Research Steps:**\n';
+                    data.research_steps.forEach((step, index) => {
+                        stepsMessage += `\n${index + 1}. **${step.tool}**: ${step.result}`;
+                    });
+                    addMessage('system', stepsMessage);
+                }
+                
+                // Show tools used summary
+                if (data.tools_used && data.tools_used.length > 0) {
+                    const toolsMessage = `🔧 **Tools Used:** ${data.tools_used.join(', ')}`;
+                    addMessage('system', toolsMessage);
+                }
+            } else {
+                addMessage('assistant', `❌ **Research Failed:** ${data.message}`);
+            }
+            
+        } catch (error) {
+            hideTyping();
+            addMessage('assistant', '❌ **Network Error:** Failed to connect to AI research service.');
+            console.error('Research error:', error);
+        }
+
+        // Re-enable input
+        sendButton.disabled = false;
+        researchInput.disabled = false;
+        researchInput.focus();
+    }
+
+    function addMessage(type, content) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = `message ${type}`;
+        
+        if (type === 'assistant' || type === 'system') {
+            // Convert markdown-like formatting to HTML
+            content = content
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/🔧/g, '<i class="fas fa-tools"></i>')
+                .replace(/❌/g, '<i class="fas fa-exclamation-triangle"></i>')
+                .replace(/✅/g, '<i class="fas fa-check"></i>');
+        }
+        
+        messageDiv.innerHTML = content;
+        chatMessages.appendChild(messageDiv);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function showTyping() {
+        typingIndicator.style.display = 'flex';
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function hideTyping() {
+        typingIndicator.style.display = 'none';
+    }
+});
+</script>
+{% endblock %}

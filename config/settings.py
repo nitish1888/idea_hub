@@ -109,6 +109,14 @@ class Config:
     # Get your API key from: https://makersuite.google.com/app/apikey
     
     #=========================================================================
+    # MCP AGENTIC AI CONFIGURATION
+    #=========================================================================
+    
+    # MCP (Model Context Protocol) configuration for tool calling with Gemini
+    # MCP enables Gemini to use tools and interact with external systems autonomously
+    MCP_ENABLED = os.getenv("MCP_ENABLED", "true").lower() == "true"
+    
+    #=========================================================================
     # FLASK APPLICATION CONFIGURATION
     #=========================================================================
     

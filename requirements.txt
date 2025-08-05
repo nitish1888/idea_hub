@@ -16,3 +16,5 @@ PyMuPDF
 Werkzeug
 Jinja2
 urllib3>=2.0.0
+# MCP Agentic AI (uses Gemini's built-in function calling)
+# No additional dependencies needed
