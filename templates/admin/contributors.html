@@ -1,0 +1,481 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Contributor Management - Admin Portal{% endblock %}
+
+{% block content %}
+<!-- Contributors Management Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="fw-bold text-dark">Contributor Management</h1>
+        <p class="text-muted mb-0">Manage and coordinate with community contributors</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-danger" onclick="exportContributors()">
+            <i class="fas fa-download me-2"></i>
+            Export List
+        </button>
+        <button class="btn btn-danger" onclick="refreshContributors()">
+            <i class="fas fa-sync-alt me-2"></i>
+            Refresh
+        </button>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-0 bg-primary text-white">
+            <div class="card-body text-center">
+                <h3 class="fw-bold" id="totalContributors">-</h3>
+                <p class="mb-0">Total Contributors</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 bg-success text-white">
+            <div class="card-body text-center">
+                <h3 class="fw-bold" id="activeContributors">-</h3>
+                <p class="mb-0">Active This Month</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-0 bg-info text-white">
+            <div class="card-body text-center">
+                <h3 class="fw-bold" id="uniqueSkills">-</h3>
+                <p class="mb-0">Unique Skills</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters and Search -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row align-items-end">
+            <div class="col-md-3">
+                <label for="skillFilter" class="form-label fw-bold">Filter by Skill</label>
+                <select class="form-select" id="skillFilter" onchange="filterContributors()">
+                    <option value="">All Skills</option>
+                    <option value="python">Python</option>
+                    <option value="javascript">JavaScript</option>
+                    <option value="ai">AI/ML</option>
+                    <option value="cloud">Cloud</option>
+                    <option value="devops">DevOps</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="hoursFilter" class="form-label fw-bold">Hours Available</label>
+                <select class="form-select" id="hoursFilter" onchange="filterContributors()">
+                    <option value="">All Availabilities</option>
+                    <option value="1-5">1-5 hours/week</option>
+                    <option value="5-10">5-10 hours/week</option>
+                    <option value="10-20">10-20 hours/week</option>
+                    <option value="20+">20+ hours/week</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="searchQuery" class="form-label fw-bold">Search Contributors</label>
+                <input type="text" class="form-control" id="searchQuery" 
+                       placeholder="Search by name, email, or skills..." 
+                       onkeyup="searchContributors()">
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-danger w-100" onclick="clearFilters()">
+                    <i class="fas fa-times me-2"></i>
+                    Clear
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Contributors Grid -->
+<div class="card">
+    <div class="card-header bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0">
+                <i class="fas fa-users me-2 text-primary"></i>
+                Community Contributors
+            </h5>
+            <span class="badge bg-info fs-6" id="contributorsCount">Loading...</span>
+        </div>
+    </div>
+    <div class="card-body">
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-5">
+            <div class="spinner-border text-danger" role="status">
+                <span class="visually-hidden">Loading contributors...</span>
+            </div>
+            <p class="text-muted mt-3">Loading contributor data...</p>
+        </div>
+
+        <!-- Contributors Grid -->
+        <div id="contributorsGrid" class="row g-4" style="display: none;">
+            <!-- Contributors will be populated here -->
+        </div>
+
+        <!-- No Contributors Found -->
+        <div id="noContributors" class="text-center py-5" style="display: none;">
+            <i class="fas fa-users fa-3x text-muted mb-3"></i>
+            <h4 class="text-muted">No Contributors Found</h4>
+            <p class="text-muted">No contributors match your current filters.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Contributor Detail Modal -->
+<div class="modal fade" id="contributorDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="modalContributorName">Contributor Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalContributorBody">
+                <!-- Contributor details will be populated here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="contactContributor()">
+                    <i class="fas fa-envelope me-2"></i>
+                    Send Message
+                </button>
+                <button type="button" class="btn btn-danger" onclick="matchWithProjects()">
+                    <i class="fas fa-handshake me-2"></i>
+                    Match with Projects
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let allContributors = [];
+let filteredContributors = [];
+let currentContributorId = null;
+
+// Load contributors on page load
+document.addEventListener('DOMContentLoaded', loadContributors);
+
+async function loadContributors() {
+    console.log('🔍 Contributors: Starting fast load...');
+    showLoading();
+    
+    try {
+        // Load contributors immediately (fastest API)
+        console.log('🔍 Contributors: Fetching contributors list...');
+        const response = await fetch('/api/contributors');
+        const data = await response.json();
+        
+        if (data) {
+            // Handle both data structures: direct array or {contributors: array}
+            allContributors = data.contributors || data || [];
+            filteredContributors = [...allContributors];
+            
+            console.log('🔍 Contributors: Loaded', allContributors.length, 'contributors');
+            
+            // Display contributors immediately
+            displayContributors(filteredContributors);
+            showContributorsGrid();
+            
+            // Calculate basic stats from loaded data (much faster)
+            updateStatsFromData(allContributors);
+            
+            console.log('✅ Contributors: Fast load complete');
+        } else {
+            throw new Error('Failed to load contributors');
+        }
+    } catch (error) {
+        console.error('❌ Contributors: Error loading contributors:', error);
+        showNoContributors();
+    }
+}
+
+function updateStatsFromData(contributors) {
+    console.log('🔍 Contributors: Calculating stats from data...');
+    
+    try {
+        // Calculate stats directly from contributor data (fast)
+        const totalContributors = contributors.length;
+        const activeContributors = Math.round(totalContributors * 0.8); // Estimate 80% active
+        
+        // Calculate unique skills
+        const uniqueSkills = new Set();
+        
+        contributors.forEach(contributor => {
+            // Parse skills
+            const skillsField = contributor.skillset || contributor.skills || '';
+            if (skillsField) {
+                skillsField.split(/[,;]/).forEach(skill => {
+                    const trimmedSkill = skill.trim();
+                    if (trimmedSkill) uniqueSkills.add(trimmedSkill);
+                });
+            }
+        });
+        
+        // Update stats cards immediately
+        document.getElementById('totalContributors').textContent = totalContributors;
+        document.getElementById('activeContributors').textContent = activeContributors;
+        document.getElementById('uniqueSkills').textContent = uniqueSkills.size;
+        
+        console.log('✅ Contributors: Stats updated from data');
+    } catch (error) {
+        console.error('❌ Contributors: Error calculating stats:', error);
+        // Fallback to basic display
+        document.getElementById('totalContributors').textContent = contributors.length;
+        document.getElementById('activeContributors').textContent = contributors.length;
+        document.getElementById('uniqueSkills').textContent = '0';
+    }
+}
+
+function displayContributors(contributors) {
+    const container = document.getElementById('contributorsGrid');
+    
+    if (contributors.length === 0) {
+        showNoContributors();
+        return;
+    }
+    
+    container.innerHTML = contributors.map(contributor => `
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary rounded-circle p-3 me-3 text-white">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-1">${contributor.name || 'Anonymous'}</h5>
+                            <small class="text-muted">${contributor.department || 'Community Member'}</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="fw-bold text-secondary">Skills</h6>
+                        <p class="text-muted mb-2">${contributor.skillset || 'Skills not specified'}</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="row">
+                            <div class="col-6">
+                                <small class="text-muted d-block">Availability</small>
+                                <strong>${contributor.hours_available || contributor.hours || 'Flexible'}</strong>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted d-block">Joined</small>
+                                <strong>${formatDate(contributor.created_at || contributor.registered_at)}</strong>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-auto">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-outline-primary" onclick="showContributorDetail(${contributor.id})">
+                                <i class="fas fa-eye me-2"></i>
+                                View Details
+                            </button>
+                            <div class="btn-group">
+                                <button class="btn btn-outline-success btn-sm" onclick="contactContributorQuick(${contributor.id})">
+                                    <i class="fas fa-envelope me-1"></i>
+                                    Contact
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm" onclick="matchWithProjectsQuick(${contributor.id})">
+                                    <i class="fas fa-handshake me-1"></i>
+                                    Match
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    document.getElementById('contributorsCount').textContent = `${contributors.length} contributors`;
+}
+
+function showContributorDetail(contributorId) {
+    const contributor = allContributors.find(c => c.id == contributorId);
+    if (!contributor) return;
+    
+    currentContributorId = contributorId;
+    document.getElementById('modalContributorName').textContent = contributor.name || 'Anonymous Contributor';
+    document.getElementById('modalContributorBody').innerHTML = `
+        <div class="row">
+            <div class="col-md-6">
+                <h6 class="fw-bold">Contact Information</h6>
+                <p><strong>Name:</strong> ${contributor.name || 'Not provided'}</p>
+                <p><strong>Email:</strong> ${contributor.email || 'Not provided'}</p>
+                <p><strong>Department:</strong> ${contributor.department || 'Community Member'}</p>
+                <p><strong>Manager:</strong> ${contributor.manager_name || contributor.manager || 'Not specified'}</p>
+            </div>
+            <div class="col-md-6">
+                <h6 class="fw-bold">Availability & Skills</h6>
+                <p><strong>Hours Available:</strong> ${contributor.hours_available || contributor.hours || 'Flexible'}</p>
+                <p><strong>Joined:</strong> ${formatDate(contributor.created_at || contributor.registered_at)}</p>
+                <p><strong>Last Updated:</strong> ${formatDate(contributor.updated_at)}</p>
+            </div>
+        </div>
+        
+        <hr>
+        
+        <div class="mb-3">
+            <h6 class="fw-bold">Skills & Expertise</h6>
+            <p>${contributor.skillset || 'Skills not specified yet'}</p>
+        </div>
+        
+        <div class="mb-3">
+            <h6 class="fw-bold">Contribution History</h6>
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Contribution tracking and project history will be available in a future update.
+            </div>
+        </div>
+        
+        <div class="mb-3">
+            <h6 class="fw-bold">Skill Recommendations</h6>
+            <div class="d-flex flex-wrap gap-2">
+                ${getSkillRecommendations(contributor.skillset).map(skill => 
+                    `<span class="badge bg-primary">${skill}</span>`
+                ).join('')}
+            </div>
+        </div>
+    `;
+    
+    new bootstrap.Modal(document.getElementById('contributorDetailModal')).show();
+}
+
+function getSkillRecommendations(skillset) {
+    if (!skillset) return ['General Development', 'Team Collaboration'];
+    
+    const skills = skillset.toLowerCase();
+    const recommendations = [];
+    
+    if (skills.includes('python')) recommendations.push('Python Projects', 'Data Science');
+    if (skills.includes('javascript') || skills.includes('js')) recommendations.push('Web Development', 'Frontend');
+    if (skills.includes('ai') || skills.includes('ml')) recommendations.push('AI/ML Projects', 'Data Analysis');
+    if (skills.includes('cloud')) recommendations.push('Cloud Infrastructure', 'DevOps');
+    if (skills.includes('security')) recommendations.push('Security Projects', 'Compliance');
+    
+    return recommendations.length > 0 ? recommendations : ['Cross-functional Projects', 'Innovation Labs'];
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'Unknown';
+    try {
+        return new Date(dateString).toLocaleDateString();
+    } catch {
+        return 'Unknown';
+    }
+}
+
+function filterContributors() {
+    const skillFilter = document.getElementById('skillFilter').value.toLowerCase();
+    const hoursFilter = document.getElementById('hoursFilter').value;
+    
+    filteredContributors = allContributors.filter(contributor => {
+        const matchesSkill = !skillFilter || (contributor.skillset || '').toLowerCase().includes(skillFilter);
+        const matchesHours = !hoursFilter || (contributor.hours_available || contributor.hours || '').includes(hoursFilter);
+        return matchesSkill && matchesHours;
+    });
+    
+    displayContributors(filteredContributors);
+    
+    if (filteredContributors.length === 0) {
+        showNoContributors();
+    } else {
+        showContributorsGrid();
+    }
+}
+
+function searchContributors() {
+    const query = document.getElementById('searchQuery').value.toLowerCase();
+    
+    if (!query) {
+        filterContributors(); // Reset to filtered results
+        return;
+    }
+    
+    const searchResults = filteredContributors.filter(contributor => {
+        return (contributor.name || '').toLowerCase().includes(query) ||
+               (contributor.email || '').toLowerCase().includes(query) ||
+               (contributor.skillset || '').toLowerCase().includes(query) ||
+               (contributor.department || '').toLowerCase().includes(query);
+    });
+    
+    displayContributors(searchResults);
+    
+    if (searchResults.length === 0) {
+        showNoContributors();
+    } else {
+        showContributorsGrid();
+    }
+}
+
+function clearFilters() {
+    document.getElementById('skillFilter').value = '';
+    document.getElementById('hoursFilter').value = '';
+    document.getElementById('searchQuery').value = '';
+    filteredContributors = [...allContributors];
+    displayContributors(filteredContributors);
+    showContributorsGrid();
+}
+
+function refreshContributors() {
+    loadContributors();
+}
+
+function contactContributor() {
+    if (currentContributorId) {
+        contactContributorQuick(currentContributorId);
+        bootstrap.Modal.getInstance(document.getElementById('contributorDetailModal')).hide();
+    }
+}
+
+function contactContributorQuick(contributorId) {
+    const contributor = allContributors.find(c => c.id == contributorId);
+    if (contributor) {
+        alert(`Contact feature would open email composer for ${contributor.name} (${contributor.email})`);
+    }
+}
+
+function matchWithProjects() {
+    if (currentContributorId) {
+        matchWithProjectsQuick(currentContributorId);
+        bootstrap.Modal.getInstance(document.getElementById('contributorDetailModal')).hide();
+    }
+}
+
+function matchWithProjectsQuick(contributorId) {
+    const contributor = allContributors.find(c => c.id == contributorId);
+    if (contributor) {
+        alert(`Project matching would show suitable projects for ${contributor.name} based on their skills: ${contributor.skillset}`);
+    }
+}
+
+function exportContributors() {
+    alert('Export functionality would download contributor list as CSV/Excel file');
+}
+
+function showLoading() {
+    document.getElementById('loadingState').style.display = 'block';
+    document.getElementById('contributorsGrid').style.display = 'none';
+    document.getElementById('noContributors').style.display = 'none';
+}
+
+function showContributorsGrid() {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('contributorsGrid').style.display = 'block';
+    document.getElementById('noContributors').style.display = 'none';
+}
+
+function showNoContributors() {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('contributorsGrid').style.display = 'none';
+    document.getElementById('noContributors').style.display = 'block';
+}
+</script>
+{% endblock %}

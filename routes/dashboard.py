@@ -14,12 +14,22 @@ dashboard_bp = Blueprint('dashboard', __name__)
 def get_dashboard_kpis():
     """Get dashboard KPIs and statistics"""
     try:
+        # Get idea stats (includes unique idea submitters)
         stats = IdeaModel.get_dashboard_stats()
         
-        return jsonify({
+        # Get actual contributor stats (people who joined as contributors)
+        from models.contributor import ContributorModel
+        contributor_stats = ContributorModel.get_contributor_stats()
+        
+        # Combine both stats with clear naming
+        combined_stats = {
             **stats,
+            "total_contributors": contributor_stats.get("total_contributors", 0),  # People who joined as contributors
+            "idea_authors": stats.get("unique_contributors", 0),  # People who submitted ideas
             "last_updated": datetime.now().isoformat()
-        })
+        }
+        
+        return jsonify(combined_stats)
         
     except Exception as e:
         logging.error(f"Error getting dashboard KPIs: {e}")

@@ -49,8 +49,9 @@ Last Updated: 2025
 
 import logging
 import warnings
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from flask_cors import CORS
+from flask_login import LoginManager, login_required, current_user
 
 # Suppress non-critical SSL warnings in development
 warnings.filterwarnings("ignore", message="urllib3 v2 only supports OpenSSL 1.1.1+")
@@ -59,6 +60,10 @@ warnings.filterwarnings("ignore", message="urllib3 v2 only supports OpenSSL 1.1.
 from config.settings import Config
 from routes import register_blueprints
 from routes.mcp_routes import mcp_bp
+from routes.auth import auth_bp
+from routes.admin import admin_bp
+from routes.user import user_bp
+from models.admin import AdminAuth
 
 #=============================================================================
 # APPLICATION FACTORY
@@ -66,27 +71,43 @@ from routes.mcp_routes import mcp_bp
 
 def create_app():
     """
-    Create and configure the Flask application
+    Create and configure the Flask application with dual-view architecture
     
-    This function implements the application factory pattern, allowing
-    for easy testing and configuration management.
+    This function implements the application factory pattern with:
+    - User view (public, no login required)
+    - Admin view (protected, authentication required)
     
     Returns:
         Flask: Configured Flask application instance
     
     Configuration:
         - Loads settings from Config class
+        - Sets up Flask-Login for admin authentication
         - Enables CORS for frontend communication
         - Sets up logging with appropriate format
-        - Registers all API blueprint routes
+        - Registers all blueprint routes (user, admin, auth, API)
     """
     
     # Create Flask app instance
     app = Flask(__name__)
     app.config.from_object(Config)
     
+    # Set secret key for sessions
+    app.secret_key = Config.SECRET_KEY or 'dev-secret-key-change-in-production'
+    
+    # Initialize Flask-Login for admin authentication
+    login_manager = LoginManager()
+    login_manager.init_app(app)
+    login_manager.login_view = 'auth.admin_login'
+    login_manager.login_message = 'Please log in to access admin features.'
+    login_manager.login_message_category = 'info'
+    
+    @login_manager.user_loader
+    def load_user(user_id):
+        """Load admin user for Flask-Login"""
+        return AdminAuth.get_admin_by_id(user_id)
+    
     # Enable CORS for frontend-backend communication
-    # Allows Streamlit app (port 8501) to communicate with Flask API (port 5001)
     CORS(app, resources={
         r"/api/*": {
             "origins": "*",                                    # Allow all origins (configure for production)
@@ -96,20 +117,19 @@ def create_app():
     })
     
     # Configure application logging
-    # Provides structured logs for debugging and monitoring
     logging.basicConfig(
-        level=logging.INFO,                                    # Log level (INFO and above)
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'  # Log format
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     )
     
-    # Register all route blueprints from routes/ directory
-    # This modular approach keeps routes organized by functionality
-    register_blueprints(app)
+    # Register blueprint routes
+    register_blueprints(app)          # Original API routes
+    app.register_blueprint(mcp_bp)    # MCP agentic AI routes
+    app.register_blueprint(auth_bp)   # Authentication routes
+    app.register_blueprint(admin_bp)  # Admin-protected routes  
+    app.register_blueprint(user_bp)   # Public user routes
     
-    # Register MCP agentic AI routes
-    app.register_blueprint(mcp_bp)
-    
-    # Register frontend routes for the new UI
+    # Register dual-view frontend routes
     register_frontend_routes(app)
     
     return app
@@ -119,12 +139,20 @@ def create_app():
 #=============================================================================
 
 def register_frontend_routes(app):
-    """Register routes for the new Flask-based UI"""
+    """Register dual-view frontend routes (user vs admin)"""
     
     @app.route('/')
-    def dashboard():
-        """Main dashboard page"""
-        return render_template('dashboard.html')
+    def landing_page():
+        """Landing page - redirect based on authentication"""
+        if current_user.is_authenticated:
+            return redirect(url_for('admin.admin_dashboard'))
+        return redirect(url_for('user.user_landing'))
+    
+    @app.route('/dashboard')
+    @login_required
+    def legacy_dashboard():
+        """Legacy dashboard redirect to admin dashboard"""
+        return redirect(url_for('admin.admin_dashboard'))
     
     @app.route('/submit')
     def submit_idea():
@@ -369,6 +397,14 @@ def main():
     print(f"🗄️  Database: {Config.DB_CONFIG['dbname']}")
     print(f"🤖 AI Service: {'Enabled' if Config.GEMINI_API_KEY else 'Disabled (set GEMINI_API_KEY)'}")
     print(f"📊 Vector Store: {Config.VECTOR_TABLE_NAME}")
+    
+    # Initialize admin authentication system
+    print(f"\n🔐 Initializing admin authentication system...")
+    if AdminAuth.initialize_admin_system():
+        print(f"✅ Admin system ready - Default credentials: admin/hello, rhadmin/redhat123")
+    else:
+        print(f"⚠️  Admin system initialization failed - check database connection")
+    
     print(f"\n💡 Open http://localhost:5001 in your browser to access the Idea Hub")
     
     # Start the Flask development server

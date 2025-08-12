@@ -1,0 +1,263 @@
+{% extends "user/base.html" %}
+
+{% block title %}Find Contributors - Red Hat Idea Hub{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <!-- Header -->
+        <div class="text-center mb-5">
+            <h1 class="display-5 fw-bold text-dark">Find Contributors</h1>
+            <p class="lead text-muted">
+                Connect with skilled professionals in the Red Hat community who can help bring your ideas to life.
+            </p>
+        </div>
+
+        <!-- Search Section -->
+        <div class="row justify-content-center mb-5">
+            <div class="col-lg-8">
+                <div class="card shadow border-0">
+                    <div class="card-body p-4">
+                        <h5 class="fw-bold mb-3">
+                            <i class="fas fa-search me-2 text-danger"></i>
+                            Search by Skills
+                        </h5>
+                        <div class="input-group input-group-lg">
+                            <input type="text" class="form-control" id="skillsSearch" 
+                                   placeholder="e.g., Python, AI, Cloud Architecture, DevOps...">
+                            <button class="btn btn-danger" onclick="searchContributors()">
+                                <i class="fas fa-search me-2"></i>
+                                Search Contributors
+                            </button>
+                        </div>
+                        <div class="form-text">
+                            <i class="fas fa-lightbulb me-1"></i>
+                            Enter skills you need for your project. Leave empty to see all contributors.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-5" style="display: none;">
+            <div class="spinner-border text-danger" role="status">
+                <span class="visually-hidden">Searching...</span>
+            </div>
+            <p class="text-muted mt-3">Finding skilled contributors...</p>
+        </div>
+
+        <!-- Results Section -->
+        <div id="resultsSection" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="fw-bold">
+                    <i class="fas fa-users me-2 text-success"></i>
+                    Available Contributors
+                </h4>
+                <span class="badge bg-info fs-6" id="resultsCount">0 found</span>
+            </div>
+
+            <div class="row g-4" id="contributorsGrid">
+                <!-- Contributors will be populated here -->
+            </div>
+        </div>
+
+        <!-- No Results -->
+        <div id="noResults" class="text-center py-5" style="display: none;">
+            <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
+            <h4 class="text-muted">No Contributors Found</h4>
+            <p class="text-muted mb-4">
+                We couldn't find contributors with those specific skills. 
+                Try searching with different keywords or browse all contributors.
+            </p>
+            <button class="btn btn-outline-danger" onclick="loadAllContributors()">
+                <i class="fas fa-users me-2"></i>
+                View All Contributors
+            </button>
+        </div>
+
+        <!-- Initial State - All Contributors -->
+        <div id="allContributorsSection">
+            <div class="text-center mb-4">
+                <h4 class="fw-bold">
+                    <i class="fas fa-users me-2 text-primary"></i>
+                    Community Contributors
+                </h4>
+                <p class="text-muted">
+                    Our community of skilled professionals ready to collaborate on innovative projects.
+                </p>
+            </div>
+
+            <div class="row g-4" id="allContributorsGrid">
+                <!-- Initial contributors will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Call to Action for Projects -->
+        <div class="text-center mt-5 pt-5 border-top">
+            <h5 class="fw-bold mb-3">Have a project idea?</h5>
+            <p class="text-muted mb-4">
+                Submit your innovative concept and let these skilled contributors know what you're working on!
+            </p>
+            <a href="{{ url_for('user.user_submit') }}" class="btn btn-danger btn-lg">
+                <i class="fas fa-lightbulb me-2"></i>
+                Submit Your Idea
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let allContributors = [];
+
+// Load contributors on page load
+document.addEventListener('DOMContentLoaded', loadAllContributors);
+
+// Search functionality
+document.getElementById('skillsSearch').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        searchContributors();
+    }
+});
+
+async function loadAllContributors() {
+    showLoading();
+    
+    try {
+        const response = await fetch('/api/user/contributors/search');
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            allContributors = data.contributors;
+            displayContributors(allContributors, 'allContributorsGrid');
+            showAllContributorsSection();
+        } else {
+            throw new Error(data.message || 'Failed to load contributors');
+        }
+    } catch (error) {
+        console.error('Error loading contributors:', error);
+        showNoResults();
+    }
+}
+
+async function searchContributors() {
+    const skills = document.getElementById('skillsSearch').value.trim();
+    
+    if (!skills) {
+        loadAllContributors();
+        return;
+    }
+    
+    showLoading();
+    
+    try {
+        const response = await fetch(`/api/user/contributors/search?skills=${encodeURIComponent(skills)}`);
+        const data = await response.json();
+        
+        if (data.status === 'success' && data.contributors.length > 0) {
+            displayContributors(data.contributors, 'contributorsGrid');
+            showResults(data.contributors.length);
+        } else {
+            showNoResults();
+        }
+    } catch (error) {
+        console.error('Error searching contributors:', error);
+        showNoResults();
+    }
+}
+
+function displayContributors(contributors, containerId) {
+    const container = document.getElementById(containerId);
+    
+    if (contributors.length === 0) {
+        container.innerHTML = '<div class="col-12 text-center text-muted">No contributors available yet.</div>';
+        return;
+    }
+    
+    container.innerHTML = contributors.map(contributor => `
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-danger rounded-circle p-3 me-3">
+                            <i class="fas fa-user text-white"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-1">${contributor.name || 'Anonymous'}</h5>
+                            <small class="text-muted">
+                                <i class="fas fa-clock me-1"></i>
+                                ${contributor.availability || 'Flexible'} hours/week
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h6 class="fw-bold text-secondary">Skills & Expertise</h6>
+                        <p class="text-muted mb-2">${contributor.skills && contributor.skills.trim() ? contributor.skills : 'Skills not specified yet'}</p>
+                        ${contributor.experience && contributor.experience !== 'Not specified' ? `
+                            <small class="text-info">
+                                <i class="fas fa-star me-1"></i>
+                                ${contributor.experience} experience
+                            </small>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="mt-auto">
+                        <div class="d-grid">
+                            <button class="btn btn-outline-danger" onclick="contactContributor('${contributor.id}', '${contributor.name}')">
+                                <i class="fas fa-envelope me-2"></i>
+                                Connect
+                            </button>
+                        </div>
+                        ${contributor.department ? `
+                            <div class="text-center mt-2">
+                                <small class="text-muted">
+                                    <i class="fas fa-building me-1"></i>
+                                    ${contributor.department}
+                                </small>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function contactContributor(contributorId, contributorName) {
+    // For now, show a simple alert. In a real app, this would open a contact form or messaging system
+    alert(`To connect with ${contributorName}, please use the Red Hat Idea Hub messaging system or contact them through the project collaboration tools.`);
+}
+
+function showLoading() {
+    document.getElementById('loadingState').style.display = 'block';
+    document.getElementById('resultsSection').style.display = 'none';
+    document.getElementById('noResults').style.display = 'none';
+    document.getElementById('allContributorsSection').style.display = 'none';
+}
+
+function showResults(count) {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('resultsSection').style.display = 'block';
+    document.getElementById('noResults').style.display = 'none';
+    document.getElementById('allContributorsSection').style.display = 'none';
+    document.getElementById('resultsCount').textContent = `${count} found`;
+}
+
+function showNoResults() {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('resultsSection').style.display = 'none';
+    document.getElementById('noResults').style.display = 'block';
+    document.getElementById('allContributorsSection').style.display = 'none';
+}
+
+function showAllContributorsSection() {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('resultsSection').style.display = 'none';
+    document.getElementById('noResults').style.display = 'none';
+    document.getElementById('allContributorsSection').style.display = 'block';
+}
+</script>
+{% endblock %}

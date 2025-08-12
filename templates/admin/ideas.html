@@ -1,0 +1,434 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Idea Management - Admin Portal{% endblock %}
+
+{% block content %}
+<!-- Ideas Management Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="fw-bold text-dark">Idea Management</h1>
+        <p class="text-muted mb-0">Manage and review submitted innovation ideas</p>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-danger" onclick="exportIdeas()">
+            <i class="fas fa-download me-2"></i>
+            Export Ideas
+        </button>
+        <button class="btn btn-danger" onclick="refreshIdeas()">
+            <i class="fas fa-sync-alt me-2"></i>
+            Refresh
+        </button>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card border-0 bg-primary text-white">
+            <div class="card-body text-center">
+                <h3 class="fw-bold" id="totalIdeas">-</h3>
+                <p class="mb-0">Total Ideas</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 bg-success text-white">
+            <div class="card-body text-center">
+                <h3 class="fw-bold" id="approvedIdeas">-</h3>
+                <p class="mb-0">Approved</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 bg-warning text-white">
+            <div class="card-body text-center">
+                <h3 class="fw-bold" id="pendingIdeas">-</h3>
+                <p class="mb-0">Pending Review</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card border-0 bg-info text-white">
+            <div class="card-body text-center">
+                <h3 class="fw-bold" id="recentIdeas">-</h3>
+                <p class="mb-0">This Week</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters and Search -->
+<div class="card mb-4">
+    <div class="card-body">
+        <div class="row align-items-end">
+            <div class="col-md-3">
+                <label for="categoryFilter" class="form-label fw-bold">Category</label>
+                <select class="form-select" id="categoryFilter" onchange="filterIdeas()">
+                    <option value="">All Categories</option>
+                    <option value="AI/ML">AI & Machine Learning</option>
+                    <option value="Cloud Infrastructure">Cloud Infrastructure</option>
+                    <option value="Security">Security & Privacy</option>
+                    <option value="DevOps">DevOps & Automation</option>
+                    <option value="Other">Other</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="statusFilter" class="form-label fw-bold">Status</label>
+                <select class="form-select" id="statusFilter" onchange="filterIdeas()">
+                    <option value="">All Statuses</option>
+                    <option value="approved">Approved</option>
+                    <option value="pending">Pending</option>
+                    <option value="rejected">Rejected</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="searchQuery" class="form-label fw-bold">Search Ideas</label>
+                <input type="text" class="form-control" id="searchQuery" 
+                       placeholder="Search by title, description, or submitter..." 
+                       onkeyup="searchIdeas()">
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-danger w-100" onclick="clearFilters()">
+                    <i class="fas fa-times me-2"></i>
+                    Clear
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Ideas Table -->
+<div class="card">
+    <div class="card-header bg-white">
+        <div class="d-flex justify-content-between align-items-center">
+            <h5 class="fw-bold mb-0">
+                <i class="fas fa-lightbulb me-2 text-warning"></i>
+                Innovation Ideas
+            </h5>
+            <span class="badge bg-info fs-6" id="ideasCount">Loading...</span>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-5">
+            <div class="spinner-border text-danger" role="status">
+                <span class="visually-hidden">Loading ideas...</span>
+            </div>
+            <p class="text-muted mt-3">Loading innovation ideas...</p>
+        </div>
+
+        <!-- Ideas Table -->
+        <div id="ideasTable" style="display: none;">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Impact</th>
+                            <th>Submitter</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ideasTableBody">
+                        <!-- Ideas will be populated here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- No Ideas Found -->
+        <div id="noIdeas" class="text-center py-5" style="display: none;">
+            <i class="fas fa-lightbulb fa-3x text-muted mb-3"></i>
+            <h4 class="text-muted">No Ideas Found</h4>
+            <p class="text-muted">No ideas match your current filters.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Idea Detail Modal -->
+<div class="modal fade" id="ideaDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="modalIdeaTitle">Idea Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalIdeaBody">
+                <!-- Idea details will be populated here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-danger" onclick="approveIdea()">
+                    <i class="fas fa-check me-2"></i>
+                    Approve Idea
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let allIdeas = [];
+let filteredIdeas = [];
+let currentIdeaId = null;
+
+// Load ideas on page load
+document.addEventListener('DOMContentLoaded', loadIdeas);
+
+async function loadIdeas() {
+    showLoading();
+    
+    try {
+        const response = await fetch('/admin/api/ideas/management');
+        const data = await response.json();
+        
+        if (data.ideas) {
+            allIdeas = data.ideas;
+            filteredIdeas = [...allIdeas];
+            updateStats(data);
+            displayIdeas(filteredIdeas);
+            showIdeasTable();
+        } else {
+            throw new Error('Failed to load ideas');
+        }
+    } catch (error) {
+        console.error('Error loading ideas:', error);
+        showNoIdeas();
+    }
+}
+
+function updateStats(data) {
+    document.getElementById('totalIdeas').textContent = data.total_count || 0;
+    document.getElementById('approvedIdeas').textContent = data.status_breakdown?.approved || 0;
+    // Fix: Use "Under Review" instead of "pending"
+    document.getElementById('pendingIdeas').textContent = data.status_breakdown?.['Under Review'] || 0;
+    // Fix: This should show recent submissions, not approved count
+    document.getElementById('recentIdeas').textContent = data.recent_submissions || 0;
+}
+
+function displayIdeas(ideas) {
+    const tbody = document.getElementById('ideasTableBody');
+    
+    if (ideas.length === 0) {
+        showNoIdeas();
+        return;
+    }
+    
+    tbody.innerHTML = ideas.map(idea => `
+        <tr>
+            <td>
+                <div class="fw-bold text-primary" style="cursor: pointer;" onclick="showIdeaDetail(${idea.id})">
+                    ${idea.title || 'Untitled'}
+                </div>
+                <small class="text-muted">${(idea.description || '').substring(0, 100)}...</small>
+            </td>
+            <td>
+                <span class="badge bg-secondary">${idea.category || 'General'}</span>
+            </td>
+            <td>
+                <span class="badge ${getImpactBadgeClass(idea.impact)}">${idea.impact || 'Medium'}</span>
+            </td>
+            <td>
+                <div class="fw-bold">${idea.submitter_name || 'Anonymous'}</div>
+                <small class="text-muted">${idea.submitter_email || ''}</small>
+            </td>
+            <td>
+                <small>${formatDate(idea.created_at)}</small>
+            </td>
+            <td>
+                <span class="badge ${getStatusBadgeClass(idea.status)}">${idea.status || 'submitted'}</span>
+            </td>
+            <td>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" onclick="showIdeaDetail(${idea.id})" title="View Details">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-outline-success" onclick="approveIdeaQuick(${idea.id})" title="Approve">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="editIdea(${idea.id})" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+    
+    document.getElementById('ideasCount').textContent = `${ideas.length} ideas`;
+}
+
+function showIdeaDetail(ideaId) {
+    const idea = allIdeas.find(i => i.id == ideaId);
+    if (!idea) return;
+    
+    currentIdeaId = ideaId;
+    document.getElementById('modalIdeaTitle').textContent = idea.title || 'Untitled Idea';
+    document.getElementById('modalIdeaBody').innerHTML = `
+        <div class="mb-3">
+            <strong>Description:</strong>
+            <p class="mt-2">${idea.description || 'No description available'}</p>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <strong>Category:</strong> ${idea.category || 'General'}
+            </div>
+            <div class="col-md-6">
+                <strong>Impact:</strong> <span class="badge ${getImpactBadgeClass(idea.impact)}">${idea.impact || 'Medium'}</span>
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <strong>Effort:</strong> ${idea.effort || 'Medium'}
+            </div>
+            <div class="col-md-6">
+                <strong>Status:</strong> <span class="badge ${getStatusBadgeClass(idea.status)}">${idea.status || 'submitted'}</span>
+            </div>
+        </div>
+        <div class="mb-3">
+            <strong>Submitted by:</strong> ${idea.submitter_name || 'Anonymous'} (${idea.submitter_email || 'No email'})
+        </div>
+        <div class="mb-3">
+            <strong>Submitted on:</strong> ${formatDate(idea.created_at)}
+        </div>
+        ${idea.admin_notes ? `
+            <div class="mb-3">
+                <strong>Admin Notes:</strong>
+                <p class="mt-2">${idea.admin_notes}</p>
+            </div>
+        ` : ''}
+    `;
+    
+    new bootstrap.Modal(document.getElementById('ideaDetailModal')).show();
+}
+
+function getImpactBadgeClass(impact) {
+    switch (impact) {
+        case 'High': return 'bg-danger';
+        case 'Medium': return 'bg-warning';
+        case 'Low': return 'bg-success';
+        default: return 'bg-secondary';
+    }
+}
+
+function getStatusBadgeClass(status) {
+    switch (status) {
+        case 'approved': return 'bg-success';
+        case 'pending': return 'bg-warning';
+        case 'rejected': return 'bg-danger';
+        default: return 'bg-secondary';
+    }
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'Unknown';
+    try {
+        return new Date(dateString).toLocaleDateString();
+    } catch {
+        return 'Unknown';
+    }
+}
+
+function filterIdeas() {
+    const categoryFilter = document.getElementById('categoryFilter').value;
+    const statusFilter = document.getElementById('statusFilter').value;
+    
+    filteredIdeas = allIdeas.filter(idea => {
+        const matchesCategory = !categoryFilter || idea.category === categoryFilter;
+        const matchesStatus = !statusFilter || idea.status === statusFilter;
+        return matchesCategory && matchesStatus;
+    });
+    
+    displayIdeas(filteredIdeas);
+    
+    if (filteredIdeas.length === 0) {
+        showNoIdeas();
+    } else {
+        showIdeasTable();
+    }
+}
+
+function searchIdeas() {
+    const query = document.getElementById('searchQuery').value.toLowerCase();
+    
+    if (!query) {
+        filterIdeas(); // Reset to filtered results
+        return;
+    }
+    
+    const searchResults = filteredIdeas.filter(idea => {
+        return (idea.title || '').toLowerCase().includes(query) ||
+               (idea.description || '').toLowerCase().includes(query) ||
+               (idea.submitter_name || '').toLowerCase().includes(query);
+    });
+    
+    displayIdeas(searchResults);
+    
+    if (searchResults.length === 0) {
+        showNoIdeas();
+    } else {
+        showIdeasTable();
+    }
+}
+
+function clearFilters() {
+    document.getElementById('categoryFilter').value = '';
+    document.getElementById('statusFilter').value = '';
+    document.getElementById('searchQuery').value = '';
+    filteredIdeas = [...allIdeas];
+    displayIdeas(filteredIdeas);
+    showIdeasTable();
+}
+
+function refreshIdeas() {
+    loadIdeas();
+}
+
+function approveIdea() {
+    if (currentIdeaId) {
+        approveIdeaQuick(currentIdeaId);
+        bootstrap.Modal.getInstance(document.getElementById('ideaDetailModal')).hide();
+    }
+}
+
+function approveIdeaQuick(ideaId) {
+    // For demo purposes, just update the local data
+    const idea = allIdeas.find(i => i.id == ideaId);
+    if (idea) {
+        idea.status = 'approved';
+        displayIdeas(filteredIdeas);
+        alert('Idea approved successfully!');
+    }
+}
+
+function editIdea(ideaId) {
+    alert('Edit functionality would open an edit form for idea ID: ' + ideaId);
+}
+
+function exportIdeas() {
+    alert('Export functionality would download ideas as CSV/Excel file');
+}
+
+function showLoading() {
+    document.getElementById('loadingState').style.display = 'block';
+    document.getElementById('ideasTable').style.display = 'none';
+    document.getElementById('noIdeas').style.display = 'none';
+}
+
+function showIdeasTable() {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('ideasTable').style.display = 'block';
+    document.getElementById('noIdeas').style.display = 'none';
+}
+
+function showNoIdeas() {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('ideasTable').style.display = 'none';
+    document.getElementById('noIdeas').style.display = 'block';
+}
+</script>
+{% endblock %}

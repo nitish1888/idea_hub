@@ -1,0 +1,175 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Analytics Debug - Red Hat Innovation Hub{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-dark">Analytics Debug</h2>
+        <button class="btn btn-danger" onclick="runDebugTests()">Run Debug Tests</button>
+    </div>
+
+    <!-- Debug Output -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Debug Information</h5>
+                </div>
+                <div class="card-body">
+                    <div id="debugOutput">
+                        <p>Click "Run Debug Tests" to check what's working...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Elements -->
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 id="totalIdeasCount">-</h3>
+                    <p>Total Ideas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 id="highImpactCount">-</h3>
+                    <p>High Impact</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 id="contributorsCount">-</h3>
+                    <p>Contributors</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h3 id="pendingReviewCount">-</h3>
+                    <p>Pending Review</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart Test -->
+    <div class="row mt-4">
+        <div class="col-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Chart Test</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="testChart" style="height: 300px;"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5>API Response Test</h5>
+                </div>
+                <div class="card-body">
+                    <pre id="apiData" style="max-height: 300px; overflow-y: auto;"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+let testChart;
+
+async function runDebugTests() {
+    const output = document.getElementById('debugOutput');
+    output.innerHTML = '<p>🔍 Running debug tests...</p>';
+    
+    const results = [];
+    
+    try {
+        // Test 1: Check if Chart.js is loaded
+        results.push(`✅ Chart.js loaded: ${typeof Chart !== 'undefined'}`);
+        
+        // Test 2: Test API endpoints
+        results.push('📡 Testing API endpoints...');
+        
+        const dashboardResponse = await fetch('/api/dashboard/kpis');
+        const dashboardData = await dashboardResponse.json();
+        results.push(`✅ Dashboard KPIs API: ${dashboardResponse.status} - ${Object.keys(dashboardData).length} fields`);
+        
+        const ideasResponse = await fetch('/api/ideas');
+        const ideasData = await ideasResponse.json();
+        results.push(`✅ Ideas API: ${ideasResponse.status} - ${ideasData.ideas?.length || 0} ideas`);
+        
+        const contributorsResponse = await fetch('/api/contributors');
+        const contributorsData = await contributorsResponse.json();
+        results.push(`✅ Contributors API: ${contributorsResponse.status} - ${contributorsData.length || 0} contributors`);
+        
+        // Test 3: Update elements
+        results.push('🎯 Updating test elements...');
+        document.getElementById('totalIdeasCount').textContent = dashboardData.total_ideas || '0';
+        document.getElementById('highImpactCount').textContent = dashboardData.impact_breakdown?.High || '0';
+        document.getElementById('contributorsCount').textContent = dashboardData.total_contributors || '0';
+        document.getElementById('pendingReviewCount').textContent = dashboardData.status_breakdown?.['Under Review'] || '0';
+        results.push('✅ Elements updated successfully');
+        
+        // Test 4: Create a simple chart
+        results.push('📊 Testing chart creation...');
+        const ctx = document.getElementById('testChart').getContext('2d');
+        if (testChart) {
+            testChart.destroy();
+        }
+        testChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Ideas', 'High Impact', 'Contributors', 'Pending'],
+                datasets: [{
+                    label: 'Count',
+                    data: [
+                        dashboardData.total_ideas || 0,
+                        dashboardData.impact_breakdown?.High || 0,
+                        dashboardData.total_contributors || 0,
+                        dashboardData.status_breakdown?.['Under Review'] || 0
+                    ],
+                    backgroundColor: '#cc0000'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+        results.push('✅ Chart created successfully');
+        
+        // Test 5: Show API data
+        document.getElementById('apiData').textContent = JSON.stringify(dashboardData, null, 2);
+        
+        results.push('🎉 All tests passed!');
+        
+    } catch (error) {
+        results.push(`❌ Error: ${error.message}`);
+        console.error('Debug test error:', error);
+    }
+    
+    output.innerHTML = results.map(r => `<p>${r}</p>`).join('');
+}
+
+// Auto-run on page load
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Analytics debug page loaded');
+    setTimeout(runDebugTests, 1000);
+});
+</script>
+{% endblock %}

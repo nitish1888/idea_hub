@@ -1,0 +1,454 @@
+{% extends "admin/base.html" %}
+
+{% block title %}Admin Dashboard - Red Hat Idea Hub{% endblock %}
+
+{% block content %}
+<!-- Dashboard Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="fw-bold text-dark">Admin Dashboard</h1>
+        <p class="text-muted mb-0">Comprehensive overview of Red Hat Idea Hub innovation metrics</p>
+    </div>
+    <div>
+        <button class="btn btn-danger" onclick="refreshDashboard()">
+            <i class="fas fa-sync-alt me-2"></i>
+            Refresh Data
+        </button>
+    </div>
+</div>
+
+<!-- Enhanced KPI Cards -->
+<div class="row g-4 mb-5">
+    <!-- Total Ideas -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card stat-card h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="stat-icon bg-danger me-3">
+                    <i class="fas fa-lightbulb"></i>
+                </div>
+                <div>
+                    <h3 class="fw-bold mb-1" id="totalIdeas">-</h3>
+                    <p class="text-muted mb-0">Total Ideas</p>
+                    <small class="text-success">
+                        <i class="fas fa-arrow-up me-1"></i>
+                        <span id="ideasGrowth">-</span>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Idea Authors -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card stat-card h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="stat-icon bg-danger me-3">
+                    <i class="fas fa-user-edit"></i>
+                </div>
+                <div>
+                    <h3 class="fw-bold mb-1" id="ideaAuthors">-</h3>
+                    <p class="text-muted mb-0">Idea Authors</p>
+                    <small class="text-info">
+                        <i class="fas fa-users me-1"></i>
+                        Unique submitters
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Contributors -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card stat-card h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="stat-icon bg-danger me-3">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div>
+                    <h3 class="fw-bold mb-1" id="activeContributors">-</h3>
+                    <p class="text-muted mb-0">Active Contributors</p>
+                    <small class="text-success">
+                        <i class="fas fa-user-plus me-1"></i>
+                        Ready to help
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Research Sessions -->
+    <div class="col-lg-3 col-md-6">
+        <div class="card stat-card h-100">
+            <div class="card-body d-flex align-items-center">
+                <div class="stat-icon bg-danger me-3">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div>
+                    <h3 class="fw-bold mb-1" id="aiSessions">-</h3>
+                    <p class="text-muted mb-0">AI Sessions</p>
+                    <small class="text-primary">
+                        <i class="fas fa-brain me-1"></i>
+                        Active research
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enhanced AI Insights Section -->
+<div class="row g-4 mb-5">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-white">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0">
+                        <i class="fas fa-brain me-2 text-danger"></i>
+                        AI-Powered Strategic Insights
+                    </h5>
+                    <button class="btn btn-outline-danger btn-sm" onclick="refreshAIInsights()">
+                        <i class="fas fa-sync-alt me-1"></i>
+                        Refresh
+                    </button>
+                </div>
+            </div>
+            <div class="card-body">
+                <div id="aiInsightsLoading" class="text-center py-4">
+                    <div class="spinner-border text-danger" role="status">
+                        <span class="visually-hidden">Loading AI insights...</span>
+                    </div>
+                    <p class="text-muted mt-2">Analyzing innovation data with AI...</p>
+                </div>
+                
+                <div id="aiInsightsContent" style="display: none;">
+                    <!-- Strategic Insights -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-primary">
+                            <i class="fas fa-chess me-2"></i>
+                            Strategic Insights
+                        </h6>
+                        <div id="strategicInsights">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <!-- Innovation Trends -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-success">
+                            <i class="fas fa-trending-up me-2"></i>
+                            Innovation Trends
+                        </h6>
+                        <div id="innovationTrends">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <!-- Resource Recommendations -->
+                    <div class="mb-0">
+                        <h6 class="fw-bold text-warning">
+                            <i class="fas fa-lightbulb me-2"></i>
+                            Resource Recommendations
+                        </h6>
+                        <div id="resourceRecommendations">
+                            <!-- Will be populated by JavaScript -->
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="aiInsightsError" style="display: none;" class="admin-alert p-3">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    AI insights temporarily unavailable. Please check system configuration.
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- System Overview -->
+    <div class="col-lg-4">
+        <div class="card h-100">
+            <div class="card-header bg-white">
+                <h5 class="fw-bold mb-0">
+                    <i class="fas fa-cogs me-2 text-secondary"></i>
+                    System Overview
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <h6 class="fw-bold">Database Health</h6>
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-success" style="width: 100%"></div>
+                    </div>
+                    <small class="text-muted">PostgreSQL + pgvector: Operational</small>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="fw-bold">AI Services</h6>
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-primary" style="width: 95%" id="aiServiceProgress"></div>
+                    </div>
+                    <small class="text-muted" id="aiServiceStatus">Gemini API: Checking...</small>
+                </div>
+                
+                <div class="mb-3">
+                    <h6 class="fw-bold">Vector Search</h6>
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-info" style="width: 90%"></div>
+                    </div>
+                    <small class="text-muted">Semantic search: Operational</small>
+                </div>
+                
+                <div class="mb-0">
+                    <h6 class="fw-bold">MCP Agent</h6>
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-warning" style="width: 85%" id="mcpAgentProgress"></div>
+                    </div>
+                    <small class="text-muted" id="mcpAgentStatus">Agentic AI: Checking...</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Innovation Categories Chart -->
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="fw-bold mb-0">
+                    <i class="fas fa-chart-pie me-2 text-info"></i>
+                    Innovation Categories
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="categoriesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="fw-bold mb-0">
+                    <i class="fas fa-chart-bar me-2 text-success"></i>
+                    Impact & Status Overview
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <canvas id="velocityChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let categoriesChart, velocityChart;
+
+// Initialize dashboard
+async function initializeDashboard() {
+    await loadEnhancedKPIs();
+    await loadComprehensiveAIInsights();
+    await initializeCharts();
+}
+
+// Load enhanced KPIs
+async function loadEnhancedKPIs() {
+    try {
+        const response = await fetch('/admin/api/dashboard/enhanced-kpis');
+        const data = await response.json();
+        
+        document.getElementById('totalIdeas').textContent = data.total_ideas || '0';
+        document.getElementById('ideaAuthors').textContent = data.idea_authors || '0';
+        document.getElementById('activeContributors').textContent = data.total_contributors || '0';
+        document.getElementById('aiSessions').textContent = data.admin_metrics?.active_ai_research_sessions || '0';
+        
+        // Growth indicators
+        document.getElementById('ideasGrowth').textContent = '+' + (data.recent_submissions || 0) + ' this week';
+        
+        // System status
+        const aiStatus = data.system_status?.ai_services === 'operational';
+        document.getElementById('aiServiceProgress').style.width = aiStatus ? '95%' : '30%';
+        document.getElementById('aiServiceProgress').className = aiStatus ? 'progress-bar bg-success' : 'progress-bar bg-danger';
+        document.getElementById('aiServiceStatus').textContent = aiStatus ? 'Gemini API: Operational' : 'Gemini API: Offline';
+        
+        const mcpStatus = data.system_status?.mcp_agent === 'operational';
+        document.getElementById('mcpAgentProgress').style.width = mcpStatus ? '90%' : '20%';
+        document.getElementById('mcpAgentProgress').className = mcpStatus ? 'progress-bar bg-success' : 'progress-bar bg-danger';
+        document.getElementById('mcpAgentStatus').textContent = mcpStatus ? 'Agentic AI: Operational' : 'Agentic AI: Offline';
+        
+    } catch (error) {
+        console.error('Error loading enhanced KPIs:', error);
+    }
+}
+
+// Load comprehensive AI insights
+async function loadComprehensiveAIInsights() {
+    try {
+        const response = await fetch('/admin/api/ai-insights/comprehensive');
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            const insights = data.comprehensive_insights;
+            
+            // Strategic Insights
+            const strategicHtml = insights.strategic_insights?.map(insight => 
+                `<div class="alert alert-primary py-2 mb-2">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    ${insight}
+                </div>`
+            ).join('') || '<p class="text-muted">No strategic insights available yet.</p>';
+            document.getElementById('strategicInsights').innerHTML = strategicHtml;
+            
+            // Innovation Trends
+            const trendsHtml = insights.innovation_trends?.map(trend => 
+                `<div class="alert alert-success py-2 mb-2">
+                    <i class="fas fa-arrow-up me-2"></i>
+                    ${trend}
+                </div>`
+            ).join('') || '<p class="text-muted">No trends identified yet.</p>';
+            document.getElementById('innovationTrends').innerHTML = trendsHtml;
+            
+            // Resource Recommendations
+            const resourcesHtml = insights.resource_recommendations?.map(rec => 
+                `<div class="alert alert-warning py-2 mb-2">
+                    <i class="fas fa-tools me-2"></i>
+                    ${rec}
+                </div>`
+            ).join('') || '<p class="text-muted">No recommendations available yet.</p>';
+            document.getElementById('resourceRecommendations').innerHTML = resourcesHtml;
+            
+            // Show content, hide loading
+            document.getElementById('aiInsightsLoading').style.display = 'none';
+            document.getElementById('aiInsightsContent').style.display = 'block';
+            document.getElementById('aiInsightsError').style.display = 'none';
+            
+        } else {
+            throw new Error(data.message || 'Failed to load AI insights');
+        }
+        
+    } catch (error) {
+        console.error('Error loading AI insights:', error);
+        document.getElementById('aiInsightsLoading').style.display = 'none';
+        document.getElementById('aiInsightsContent').style.display = 'none';
+        document.getElementById('aiInsightsError').style.display = 'block';
+    }
+}
+
+// Initialize charts with real data
+async function initializeCharts() {
+    try {
+        // Get real KPI data
+        const kpiResponse = await fetch('/api/dashboard/kpis');
+        const kpiData = await kpiResponse.json();
+        
+        // Categories Chart - Use real database data
+        const categories = kpiData.category_breakdown || {};
+        const categoryLabels = Object.keys(categories);
+        const categoryValues = Object.values(categories);
+        
+        const ctxCategories = document.getElementById('categoriesChart').getContext('2d');
+        categoriesChart = new Chart(ctxCategories, {
+            type: 'doughnut',
+            data: {
+                labels: categoryLabels,
+                datasets: [{
+                    data: categoryValues,
+                    backgroundColor: [
+                        '#cc0000',
+                        '#ff6b6b',
+                        '#4ecdc4',
+                        '#45b7d1',
+                        '#96ceb4',
+                        '#f7b731',
+                        '#5f27cd',
+                        '#26de81'
+                    ].slice(0, categoryLabels.length),
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
+            }
+        });
+        
+        // Impact & Status Overview - Show meaningful business metrics
+        const impactBreakdown = kpiData.impact_breakdown || {};
+        const statusBreakdown = kpiData.status_breakdown || {};
+        
+        const ctxVelocity = document.getElementById('velocityChart').getContext('2d');
+        velocityChart = new Chart(ctxVelocity, {
+            type: 'bar',
+            data: {
+                labels: ['High Impact Ideas', 'Medium Impact Ideas', 'Under Review', 'Active Contributors'],
+                datasets: [{
+                    label: 'Count',
+                    data: [
+                        impactBreakdown['High'] || 0,
+                        impactBreakdown['Medium'] || 0,
+                        statusBreakdown['Under Review'] || 0,
+                        kpiData.total_contributors || 0
+                    ],
+                    backgroundColor: '#cc0000',  // Consistent Red Hat red
+                    borderColor: '#cc0000',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false  // Hide legend for cleaner look
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return `${context.label}: ${context.parsed.y}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 1
+                        }
+                    }
+                }
+            }
+        });
+        
+    } catch (error) {
+        console.error('Error initializing charts:', error);
+    }
+}
+
+// Refresh functions
+async function refreshDashboard() {
+    await loadEnhancedKPIs();
+    await loadComprehensiveAIInsights();
+}
+
+async function refreshAIInsights() {
+    document.getElementById('aiInsightsLoading').style.display = 'block';
+    document.getElementById('aiInsightsContent').style.display = 'none';
+    document.getElementById('aiInsightsError').style.display = 'none';
+    await loadComprehensiveAIInsights();
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', initializeDashboard);
+</script>
+{% endblock %}

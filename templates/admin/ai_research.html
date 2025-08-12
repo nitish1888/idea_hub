@@ -1,0 +1,391 @@
+{% extends "admin/base.html" %}
+
+{% block title %}AI Research Assistant - Admin Portal{% endblock %}
+
+{% block show_sidebar %}false{% endblock %}
+
+{% block content %}
+<!-- AI Research Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="fw-bold text-dark">
+            <i class="fas fa-robot me-3 text-danger"></i>
+            AI Research Assistant
+        </h1>
+        <p class="text-muted mb-0">Advanced AI-powered research with MCP agentic capabilities</p>
+    </div>
+    <div class="d-flex gap-2">
+        <span class="badge bg-success fs-6" id="mcpStatus">
+            <i class="fas fa-circle me-1"></i>
+            MCP Agent Online
+        </span>
+        <button class="btn btn-outline-danger" onclick="clearChat()">
+            <i class="fas fa-trash me-2"></i>
+            Clear Chat
+        </button>
+    </div>
+</div>
+
+<!-- AI Research Interface -->
+<div class="row g-4">
+    <!-- Chat Interface -->
+    <div class="col-lg-8">
+        <div class="card h-100">
+            <div class="card-header bg-gradient text-white" style="background: linear-gradient(135deg, #cc0000, #a30000);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="fw-bold mb-0">
+                        <i class="fas fa-comments me-2"></i>
+                        Research Chat
+                    </h5>
+                    <small class="opacity-75">Powered by MCP + Gemini AI</small>
+                </div>
+            </div>
+            <div class="card-body d-flex flex-column" style="height: 600px;">
+                <!-- Chat Messages -->
+                <div id="chatMessages" class="flex-grow-1 overflow-auto mb-3 border rounded p-3 bg-light">
+                    <div class="alert alert-info">
+                        <i class="fas fa-robot me-2"></i>
+                        <strong>AI Research Assistant Ready!</strong> 
+                        I can help you analyze innovation trends, evaluate ideas, research market opportunities, 
+                        and provide strategic insights using advanced AI tools.
+                    </div>
+                </div>
+                
+                <!-- Typing Indicator -->
+                <div id="typingIndicator" class="mb-3" style="display: none;">
+                    <div class="d-flex align-items-center text-muted">
+                        <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+                        <span>AI is researching...</span>
+                    </div>
+                </div>
+                
+                <!-- Chat Input -->
+                <form id="chatForm" class="d-flex gap-2">
+                    <input type="text" class="form-control form-control-lg" id="chatInput" 
+                           placeholder="Ask me about innovation trends, idea analysis, market research..." 
+                           disabled>
+                    <button type="submit" class="btn btn-danger btn-lg" id="sendBtn" disabled>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Research Tools & Status -->
+    <div class="col-lg-4">
+        <!-- MCP Status -->
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <h6 class="fw-bold mb-0">
+                    <i class="fas fa-cogs me-2 text-primary"></i>
+                    MCP Agent Status
+                </h6>
+            </div>
+            <div class="card-body">
+                <div id="mcpStatusDetail">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Agent Status</span>
+                        <span class="badge bg-success" id="agentStatus">Checking...</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span>Available Tools</span>
+                        <span class="badge bg-info" id="toolsCount">-</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span>Research Capability</span>
+                        <span class="badge bg-primary" id="researchCapability">Advanced</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Research Queries -->
+        <div class="card mb-4">
+            <div class="card-header bg-white">
+                <h6 class="fw-bold mb-0">
+                    <i class="fas fa-lightning-bolt me-2 text-warning"></i>
+                    Quick Research
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-primary btn-sm" onclick="quickResearch('innovation trends')">
+                        <i class="fas fa-chart-line me-2"></i>
+                        Innovation Trends
+                    </button>
+                    <button class="btn btn-outline-success btn-sm" onclick="quickResearch('feasibility analysis')">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Feasibility Analysis
+                    </button>
+                    <button class="btn btn-outline-warning btn-sm" onclick="quickResearch('market opportunities')">
+                        <i class="fas fa-bullseye me-2"></i>
+                        Market Opportunities
+                    </button>
+                    <button class="btn btn-outline-info btn-sm" onclick="quickResearch('skill gap analysis')">
+                        <i class="fas fa-users-cog me-2"></i>
+                        Skill Gap Analysis
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" onclick="quickResearch('competitive landscape')">
+                        <i class="fas fa-sword me-2"></i>
+                        Competitive Analysis
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Available Tools -->
+        <div class="card">
+            <div class="card-header bg-white">
+                <h6 class="fw-bold mb-0">
+                    <i class="fas fa-toolbox me-2 text-secondary"></i>
+                    AI Research Tools
+                </h6>
+            </div>
+            <div class="card-body">
+                <div id="availableTools">
+                    <div class="mb-2">
+                        <small class="text-muted d-block">🔍 Search Similar Ideas</small>
+                        <span class="badge bg-success">Active</span>
+                    </div>
+                    <div class="mb-2">
+                        <small class="text-muted d-block">📊 Innovation Trends</small>
+                        <span class="badge bg-success">Active</span>
+                    </div>
+                    <div class="mb-2">
+                        <small class="text-muted d-block">👥 Contributor Analysis</small>
+                        <span class="badge bg-success">Active</span>
+                    </div>
+                    <div class="mb-2">
+                        <small class="text-muted d-block">⚡ Feasibility Evaluation</small>
+                        <span class="badge bg-success">Active</span>
+                    </div>
+                    <div class="mb-2">
+                        <small class="text-muted d-block">🚀 Implementation Roadmap</small>
+                        <span class="badge bg-success">Active</span>
+                    </div>
+                    <div>
+                        <small class="text-muted d-block">💡 Idea Details</small>
+                        <span class="badge bg-success">Active</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Research Examples Modal -->
+<div class="modal fade" id="examplesModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Research Query Examples</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <h6 class="fw-bold text-primary">Trend Analysis</h6>
+                        <ul class="list-unstyled">
+                            <li><a href="#" onclick="useExample('What are the current AI/ML innovation trends?')">Current AI/ML trends</a></li>
+                            <li><a href="#" onclick="useExample('Analyze cloud infrastructure innovation patterns')">Cloud infrastructure patterns</a></li>
+                            <li><a href="#" onclick="useExample('What emerging technologies should we focus on?')">Emerging technology focus</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="fw-bold text-success">Market Research</h6>
+                        <ul class="list-unstyled">
+                            <li><a href="#" onclick="useExample('Analyze competitive landscape for cloud services')">Cloud services competition</a></li>
+                            <li><a href="#" onclick="useExample('What market opportunities exist for AI automation?')">AI automation opportunities</a></li>
+                            <li><a href="#" onclick="useExample('Research enterprise security solution gaps')">Security solution gaps</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let chatInitialized = false;
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', initializeChat);
+
+async function initializeChat() {
+    await checkMCPStatus();
+    enableChatInterface();
+    chatInitialized = true;
+}
+
+async function checkMCPStatus() {
+    try {
+        const response = await fetch('/api/mcp/status');
+        const data = await response.json();
+        
+        if (data.available) {
+            document.getElementById('agentStatus').textContent = 'Online';
+            document.getElementById('agentStatus').className = 'badge bg-success';
+            document.getElementById('toolsCount').textContent = data.tools_available?.length || '6';
+            document.getElementById('mcpStatus').innerHTML = '<i class="fas fa-circle me-1"></i>MCP Agent Online';
+        } else {
+            document.getElementById('agentStatus').textContent = 'Offline';
+            document.getElementById('agentStatus').className = 'badge bg-danger';
+            document.getElementById('toolsCount').textContent = '0';
+            document.getElementById('mcpStatus').innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>MCP Agent Offline';
+            document.getElementById('mcpStatus').className = 'badge bg-danger fs-6';
+        }
+    } catch (error) {
+        console.error('Error checking MCP status:', error);
+        document.getElementById('agentStatus').textContent = 'Error';
+        document.getElementById('agentStatus').className = 'badge bg-warning';
+    }
+}
+
+function enableChatInterface() {
+    document.getElementById('chatInput').disabled = false;
+    document.getElementById('sendBtn').disabled = false;
+}
+
+// Chat form submission
+document.getElementById('chatForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const input = document.getElementById('chatInput');
+    const query = input.value.trim();
+    
+    if (!query) return;
+    
+    // Add user message to chat
+    addMessage(query, 'user');
+    input.value = '';
+    
+    // Show typing indicator
+    showTypingIndicator();
+    
+    try {
+        // Send research query to MCP agent
+        const response = await fetch('/api/mcp/research', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ query: query })
+        });
+        
+        const result = await response.json();
+        
+        hideTypingIndicator();
+        
+        if (result.status === 'success') {
+            // Add AI response to chat
+            addMessage(result.agent_analysis, 'ai', {
+                tools_used: result.tools_used,
+                research_steps: result.research_steps
+            });
+        } else {
+            addMessage('Sorry, I encountered an error while researching your query: ' + (result.message || 'Unknown error'), 'error');
+        }
+        
+    } catch (error) {
+        hideTypingIndicator();
+        console.error('Research error:', error);
+        addMessage('Sorry, I had trouble connecting to the research service. Please try again.', 'error');
+    }
+});
+
+function addMessage(content, type, metadata = null) {
+    const chatMessages = document.getElementById('chatMessages');
+    const messageDiv = document.createElement('div');
+    messageDiv.className = `mb-3 ${type === 'user' ? 'text-end' : ''}`;
+    
+    let messageClass = '';
+    let icon = '';
+    
+    switch (type) {
+        case 'user':
+            messageClass = 'bg-primary text-white';
+            icon = '<i class="fas fa-user me-2"></i>';
+            break;
+        case 'ai':
+            messageClass = 'bg-success text-white';
+            icon = '<i class="fas fa-robot me-2"></i>';
+            break;
+        case 'error':
+            messageClass = 'bg-danger text-white';
+            icon = '<i class="fas fa-exclamation-triangle me-2"></i>';
+            break;
+    }
+    
+    let metadataHtml = '';
+    if (metadata && (metadata.tools_used || metadata.research_steps)) {
+        metadataHtml = `
+            <div class="mt-2 p-2 bg-light rounded">
+                ${metadata.tools_used ? `
+                    <small class="text-muted d-block">
+                        <strong>Tools Used:</strong> ${metadata.tools_used.join(', ')}
+                    </small>
+                ` : ''}
+                ${metadata.research_steps && metadata.research_steps.length > 0 ? `
+                    <small class="text-muted d-block mt-1">
+                        <strong>Research Steps:</strong> ${metadata.research_steps.length} autonomous actions
+                    </small>
+                ` : ''}
+            </div>
+        `;
+    }
+    
+    messageDiv.innerHTML = `
+        <div class="d-inline-block p-3 rounded ${messageClass}" style="max-width: 80%;">
+            ${icon}${content}
+        </div>
+        ${metadataHtml}
+    `;
+    
+    chatMessages.appendChild(messageDiv);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+}
+
+function showTypingIndicator() {
+    document.getElementById('typingIndicator').style.display = 'block';
+}
+
+function hideTypingIndicator() {
+    document.getElementById('typingIndicator').style.display = 'none';
+}
+
+function quickResearch(topic) {
+    const queries = {
+        'innovation trends': 'Analyze current innovation trends in our idea hub. What categories are most popular and what emerging patterns do you see?',
+        'feasibility analysis': 'Evaluate the technical feasibility of our highest impact ideas. Which ones are most likely to succeed?',
+        'market opportunities': 'Research market opportunities for our top innovation categories. Where should we focus our efforts?',
+        'skill gap analysis': 'Analyze our contributor skills vs project needs. What skill gaps should we address?',
+        'competitive landscape': 'Research the competitive landscape for our innovation focus areas. Who are the key players and opportunities?'
+    };
+    
+    const query = queries[topic] || `Research ${topic} for our innovation hub`;
+    document.getElementById('chatInput').value = query;
+    document.getElementById('chatForm').dispatchEvent(new Event('submit'));
+}
+
+function clearChat() {
+    document.getElementById('chatMessages').innerHTML = `
+        <div class="alert alert-info">
+            <i class="fas fa-robot me-2"></i>
+            <strong>AI Research Assistant Ready!</strong> 
+            I can help you analyze innovation trends, evaluate ideas, research market opportunities, 
+            and provide strategic insights using advanced AI tools.
+        </div>
+    `;
+}
+
+function useExample(query) {
+    document.getElementById('chatInput').value = query;
+    bootstrap.Modal.getInstance(document.getElementById('examplesModal')).hide();
+}
+
+// Auto-focus chat input
+document.getElementById('chatInput').focus();
+</script>
+{% endblock %}

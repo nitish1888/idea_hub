@@ -1,0 +1,368 @@
+{% extends "user/base.html" %}
+
+{% block title %}Browse Ideas - Red Hat Idea Hub{% endblock %}
+
+{% block content %}
+<section class="py-5">
+    <div class="container">
+        <!-- Header -->
+        <div class="text-center mb-5">
+            <h1 class="display-5 fw-bold text-dark">Browse Ideas</h1>
+            <p class="lead text-muted">
+                Explore innovative concepts from the Red Hat community. Find projects that match your skills and interests.
+            </p>
+        </div>
+
+        <!-- Filter Section -->
+        <div class="row justify-content-center mb-5">
+            <div class="col-lg-10">
+                <div class="card shadow border-0">
+                    <div class="card-body p-4">
+                        <div class="row align-items-end">
+                            <div class="col-md-4">
+                                <label for="categoryFilter" class="form-label fw-bold">Category</label>
+                                <select class="form-select" id="categoryFilter" onchange="filterIdeas()">
+                                    <option value="">All Categories</option>
+                                    <option value="AI/ML">AI & Machine Learning</option>
+                                    <option value="Cloud Infrastructure">Cloud Infrastructure</option>
+                                    <option value="Security">Security & Privacy</option>
+                                    <option value="DevOps">DevOps & Automation</option>
+                                    <option value="Web Development">Web Development</option>
+                                    <option value="Mobile">Mobile Applications</option>
+                                    <option value="Data Analytics">Data Analytics</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="impactFilter" class="form-label fw-bold">Impact Level</label>
+                                <select class="form-select" id="impactFilter" onchange="filterIdeas()">
+                                    <option value="">All Impact Levels</option>
+                                    <option value="High">High Impact</option>
+                                    <option value="Medium">Medium Impact</option>
+                                    <option value="Low">Low Impact</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <button class="btn btn-outline-danger w-100" onclick="clearFilters()">
+                                    <i class="fas fa-times me-2"></i>
+                                    Clear Filters
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-5">
+            <div class="spinner-border text-danger" role="status">
+                <span class="visually-hidden">Loading ideas...</span>
+            </div>
+            <p class="text-muted mt-3">Loading innovative ideas...</p>
+        </div>
+
+        <!-- Ideas Grid -->
+        <div id="ideasSection" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="fw-bold">
+                    <i class="fas fa-lightbulb me-2 text-warning"></i>
+                    Innovation Ideas
+                </h4>
+                <span class="badge bg-info fs-6" id="ideasCount">0 ideas</span>
+            </div>
+
+            <div class="row g-4" id="ideasGrid">
+                <!-- Ideas will be populated here -->
+            </div>
+        </div>
+
+        <!-- No Ideas -->
+        <div id="noIdeas" class="text-center py-5" style="display: none;">
+            <i class="fas fa-lightbulb fa-3x text-muted mb-3"></i>
+            <h4 class="text-muted">No Ideas Found</h4>
+            <p class="text-muted mb-4">
+                No ideas match your current filters. Try adjusting your criteria or submit the first idea!
+            </p>
+            <a href="{{ url_for('user.user_submit') }}" class="btn btn-danger btn-lg">
+                <i class="fas fa-plus me-2"></i>
+                Submit First Idea
+            </a>
+        </div>
+
+        <!-- Call to Action -->
+        <div class="text-center mt-5 pt-5 border-top">
+            <h5 class="fw-bold mb-3">Have your own innovative idea?</h5>
+            <p class="text-muted mb-4">
+                Join the community by submitting your concept and finding contributors to make it reality.
+            </p>
+            <div class="d-flex justify-content-center gap-3">
+                <a href="{{ url_for('user.user_submit') }}" class="btn btn-danger btn-lg">
+                    <i class="fas fa-lightbulb me-2"></i>
+                    Submit Your Idea
+                </a>
+                <a href="{{ url_for('user.user_contribute') }}" class="btn btn-outline-danger btn-lg">
+                    <i class="fas fa-hand-paper me-2"></i>
+                    Offer Your Skills
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Idea Detail Modal -->
+<div class="modal fade" id="ideaModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="modalTitle">Idea Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Idea details will be populated here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="{{ url_for('user.user_contribute') }}" class="btn btn-danger">
+                    <i class="fas fa-hand-paper me-2"></i>
+                    Join as Contributor
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let allIdeas = [];
+let filteredIdeas = [];
+
+// Load ideas on page load
+document.addEventListener('DOMContentLoaded', loadIdeas);
+
+async function loadIdeas() {
+    showLoading();
+    
+    try {
+        const response = await fetch('/api/user/ideas/browse');
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            allIdeas = data.ideas;
+            filteredIdeas = [...allIdeas];
+            displayIdeas(filteredIdeas);
+            showIdeasSection();
+        } else {
+            throw new Error(data.message || 'Failed to load ideas');
+        }
+    } catch (error) {
+        console.error('Error loading ideas:', error);
+        showNoIdeas();
+    }
+}
+
+function displayIdeas(ideas) {
+    const container = document.getElementById('ideasGrid');
+    
+    if (ideas.length === 0) {
+        showNoIdeas();
+        return;
+    }
+    
+    container.innerHTML = ideas.map(idea => `
+        <div class="col-lg-4 col-md-6">
+            <div class="card h-100 shadow-sm border-0 idea-card" onclick="showIdeaDetails(${idea.id})">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <span class="badge ${getImpactBadgeClass(idea.impact)} fs-6">${idea.impact || 'Medium'} Impact</span>
+                        <small class="text-muted">${idea.category || 'General'}</small>
+                    </div>
+                    
+                    <h5 class="fw-bold mb-3 text-primary">${idea.title || 'Untitled Idea'}</h5>
+                    
+                    <p class="text-muted mb-3">
+                        ${(idea.description || 'No description available').substring(0, 150)}${idea.description && idea.description.length > 150 ? '...' : ''}
+                    </p>
+                    
+                    <div class="mb-3">
+                        <small class="text-muted">
+                            <i class="fas fa-user me-1"></i>
+                            By ${idea.submitter_name || 'Anonymous'}
+                        </small>
+                        <br>
+                        <small class="text-muted">
+                            <i class="fas fa-calendar me-1"></i>
+                            ${formatDate(idea.date_submitted)}
+                        </small>
+                    </div>
+                    
+                    ${idea.skills_needed && idea.skills_needed.length > 0 ? `
+                        <div class="mb-3">
+                            <h6 class="fw-bold text-secondary mb-2">Skills Needed:</h6>
+                            <div class="d-flex flex-wrap gap-1">
+                                ${idea.skills_needed.slice(0, 3).map(skill => 
+                                    `<span class="badge bg-light text-dark">${skill.trim()}</span>`
+                                ).join('')}
+                                ${idea.skills_needed.length > 3 ? `<span class="badge bg-secondary">+${idea.skills_needed.length - 3} more</span>` : ''}
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="mt-auto">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <button class="btn btn-outline-danger btn-sm" onclick="event.stopPropagation(); showIdeaDetails(${idea.id})">
+                                <i class="fas fa-eye me-1"></i>
+                                View Details
+                            </button>
+                            <div class="d-flex align-items-center ${idea.looking_for_contributors ? 'text-warning' : 'text-success'}">
+                                <i class="fas fa-${idea.looking_for_contributors ? 'search' : 'handshake'} me-1"></i>
+                                <small>${idea.looking_for_contributors ? 'Seeking contributors' : 'Open for collaboration'}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    document.getElementById('ideasCount').textContent = `${ideas.length} ideas`;
+}
+
+function showIdeaDetails(ideaId) {
+    const idea = allIdeas.find(i => i.id == ideaId);
+    if (!idea) return;
+    
+    document.getElementById('modalTitle').textContent = idea.title || 'Untitled Idea';
+    document.getElementById('modalBody').innerHTML = `
+        <div class="mb-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <strong>Category:</strong> ${idea.category || 'General'}
+                </div>
+                <div class="col-md-6">
+                    <strong>Impact Level:</strong> 
+                    <span class="badge ${getImpactBadgeClass(idea.impact)}">${idea.impact || 'Medium'}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <h6 class="fw-bold">Description:</h6>
+            <p class="text-muted">${idea.description || 'No description available'}</p>
+        </div>
+        
+        <div class="mb-4">
+            <div class="row">
+                <div class="col-md-6">
+                    <strong>Submitted by:</strong> ${idea.submitter_name || 'Anonymous'}
+                </div>
+                <div class="col-md-6">
+                    <strong>Date:</strong> ${formatDate(idea.date_submitted)}
+                </div>
+            </div>
+        </div>
+        
+        ${idea.skills_needed && idea.skills_needed.length > 0 ? `
+            <div class="mb-4">
+                <h6 class="fw-bold">Skills Needed:</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    ${idea.skills_needed.map(skill => 
+                        `<span class="badge bg-primary">${skill.trim()}</span>`
+                    ).join('')}
+                </div>
+            </div>
+        ` : ''}
+        
+        <div class="alert ${idea.looking_for_contributors ? 'alert-warning' : 'alert-success'}">
+            <i class="fas fa-${idea.looking_for_contributors ? 'search' : 'handshake'} me-2"></i>
+            <strong>${idea.looking_for_contributors ? 'This idea needs you!' : 'Interested in this idea?'}</strong> 
+            ${idea.looking_for_contributors ? 
+                'This project is actively seeking skilled contributors to help bring it to life.' : 
+                'This project welcomes collaboration from skilled contributors.'
+            }
+            Join as a contributor to offer your expertise and help make innovation happen.
+        </div>
+    `;
+    
+    new bootstrap.Modal(document.getElementById('ideaModal')).show();
+}
+
+function filterIdeas() {
+    const categoryFilter = document.getElementById('categoryFilter').value;
+    const impactFilter = document.getElementById('impactFilter').value;
+    
+    filteredIdeas = allIdeas.filter(idea => {
+        const matchesCategory = !categoryFilter || idea.category === categoryFilter;
+        const matchesImpact = !impactFilter || idea.impact === impactFilter;
+        return matchesCategory && matchesImpact;
+    });
+    
+    displayIdeas(filteredIdeas);
+    
+    if (filteredIdeas.length === 0) {
+        showNoIdeas();
+    } else {
+        showIdeasSection();
+    }
+}
+
+function clearFilters() {
+    document.getElementById('categoryFilter').value = '';
+    document.getElementById('impactFilter').value = '';
+    filteredIdeas = [...allIdeas];
+    displayIdeas(filteredIdeas);
+    showIdeasSection();
+}
+
+function getImpactBadgeClass(impact) {
+    switch (impact) {
+        case 'High': return 'bg-danger';
+        case 'Medium': return 'bg-warning';
+        case 'Low': return 'bg-success';
+        default: return 'bg-secondary';
+    }
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'Recently';
+    try {
+        return new Date(dateString).toLocaleDateString();
+    } catch {
+        return 'Recently';
+    }
+}
+
+function showLoading() {
+    document.getElementById('loadingState').style.display = 'block';
+    document.getElementById('ideasSection').style.display = 'none';
+    document.getElementById('noIdeas').style.display = 'none';
+}
+
+function showIdeasSection() {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('ideasSection').style.display = 'block';
+    document.getElementById('noIdeas').style.display = 'none';
+}
+
+function showNoIdeas() {
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('ideasSection').style.display = 'none';
+    document.getElementById('noIdeas').style.display = 'block';
+}
+
+// Add some CSS for hover effects
+const style = document.createElement('style');
+style.textContent = `
+    .idea-card {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .idea-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15) !important;
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}
