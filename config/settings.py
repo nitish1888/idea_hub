@@ -121,8 +121,8 @@ class Config:
     #=========================================================================
     
     # Flask web application settings
-    SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-key-change-in-production")  # Session encryption key
-    DEBUG = os.getenv("DEBUG", "True").lower() == "true"      # Enable/disable debug mode
+    SECRET_KEY = os.getenv("SECRET_KEY", "f9db3a3845ebd2c5ce837b44ed420a09ce915f7d88edfbd3943da2305fc4d740")  # Session encryption key
+    DEBUG = os.getenv("DEBUG", "False").lower() == "true"     # Enable/disable debug mode (False for production)
     
     # SECURITY NOTE: Change SECRET_KEY for production deployment
     # Generate a secure key with: python -c "import secrets; print(secrets.token_hex(16))"

@@ -107,10 +107,12 @@ def create_app():
         """Load admin user for Flask-Login"""
         return AdminAuth.get_admin_by_id(user_id)
     
-    # Enable CORS for frontend-backend communication
+    # Enable CORS for frontend-backend communication  
+    # Production: Configure specific allowed origins for security
+    allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:5001,http://127.0.0.1:5001").split(",")
     CORS(app, resources={
         r"/api/*": {
-            "origins": "*",                                    # Allow all origins (configure for production)
+            "origins": allowed_origins,                        # Specific allowed origins for production security
             "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],  # Allowed HTTP methods
             "allow_headers": ["Content-Type", "Authorization"]       # Allowed headers
         }

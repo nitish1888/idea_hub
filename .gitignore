@@ -108,3 +108,4 @@ node_modules/
 *.tgz
 *.tar.gz 
 .env
+idea_hub_env/
