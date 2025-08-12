@@ -90,7 +90,7 @@
     <!-- Navigation -->
     <nav class="nav-container">
         <div class="nav-content">
-            <a href="{{ url_for('dashboard') }}" class="nav-button {% if request.endpoint == 'dashboard' %}active{% endif %}">
+            <a href="{{ url_for('legacy_dashboard') }}" class="nav-button {% if request.endpoint == 'legacy_dashboard' %}active{% endif %}">
                 <i class="fas fa-chart-dashboard"></i>
                 Dashboard
             </a>
