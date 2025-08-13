@@ -31,10 +31,44 @@ class VectorService:
             if huggingface_service.is_available():
                 # Initialize with existing collection if it exists
                 self._connect_to_existing_store()
+                
+                # If connection failed due to dimension mismatch, create new store
+                if self.vector_store is None:
+                    self._create_new_vector_store()
             else:
                 logging.warning("⚠️ Vector service initialized without HuggingFace embeddings")
         except Exception as e:
             logging.error(f"❌ Vector service initialization failed: {e}")
+            self.vector_store = None
+    
+    def _create_new_vector_store(self):
+        """Create a new vector store with current embedding dimensions"""
+        try:
+            if not huggingface_service.is_available():
+                logging.error("❌ Cannot create vector store - HuggingFace service not available")
+                return
+            
+            embedding_function = huggingface_service.get_embedding_model()
+            if embedding_function is None:
+                logging.error("❌ Cannot create vector store - no embedding function available")
+                return
+            
+            # Configuration for new vector store
+            vector_config = {
+                "collection_name": self.collection_name,
+                "connection_string": self.connection_string,
+                "embedding_function": embedding_function,
+                "pre_delete_collection": False  # Don't delete, just create new if needed
+            }
+            
+            logging.info(f"🔄 Creating new vector store: {self.collection_name}")
+            
+            # Create new store
+            self.vector_store = PGVector(**vector_config)
+            logging.info(f"✅ Created new vector store: {self.collection_name}")
+            
+        except Exception as e:
+            logging.error(f"❌ Failed to create new vector store: {e}")
             self.vector_store = None
     
     def _connect_to_existing_store(self):
@@ -71,6 +105,10 @@ class VectorService:
                 logging.info(f"✅ Vector store is working with {len(test_results)} items found in test")
             except Exception as test_e:
                 logging.warning(f"⚠️ Vector store connected but test search failed: {test_e}")
+                # If dimension mismatch, the vector store still exists but needs clearing
+                if "different vector dimensions" in str(test_e):
+                    logging.warning("⚠️ Vector dimension mismatch detected - vector store needs reset")
+                    self.vector_store = None  # Mark as unavailable until cleared
             
         except Exception as e:
             logging.error(f"❌ Failed to connect to existing vector store: {e}")
@@ -246,13 +284,16 @@ class VectorService:
             cur.close()
             conn.close()
             
-            # Reset vector store
-            self.vector_store = None
-            
             logging.info(f"✅ Cleared vector store: {self.collection_name}")
+            
+            # Reinitialize vector store with new dimensions
+            self._initialize()
+            
+            return {"status": "success", "message": "Vector store cleared and reinitialized"}
             
         except Exception as e:
             logging.error(f"❌ Error clearing vector store: {e}")
+            return {"status": "error", "error": str(e)}
 
 # Global instance
 vector_service = VectorService() 

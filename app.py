@@ -49,6 +49,7 @@ Last Updated: 2025
 
 import logging
 import warnings
+import os
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session
 from flask_cors import CORS
 from flask_login import LoginManager, login_required, current_user
@@ -403,7 +404,7 @@ def main():
     # Initialize admin authentication system
     print(f"\n🔐 Initializing admin authentication system...")
     if AdminAuth.initialize_admin_system():
-        print(f"✅ Admin system ready - Default credentials: admin/hello, rhadmin/redhat123")
+        print(f"✅ Admin system ready - Access via /admin/login")
     else:
         print(f"⚠️  Admin system initialization failed - check database connection")
     
@@ -414,7 +415,7 @@ def main():
     app.run(
         debug=Config.DEBUG,        # Enable/disable debug mode
         host='0.0.0.0',           # Listen on all interfaces
-        port=5001,                  # API server port (must match frontend)               
+        port=8080,                  # API server port (OpenShift standard)               
     )
 
 #=============================================================================

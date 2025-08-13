@@ -23,14 +23,15 @@ share/python-wheels/
 *.egg
 MANIFEST
 
-# Virtual environments
-venv/
+# Virtual Environments
+.env
+.venv
 env/
+venv/
 ENV/
 env.bak/
 venv.bak/
-idea_hub/
-idea_hub_venv/
+idea_hub_env/
 
 # IDE
 .vscode/
@@ -39,7 +40,46 @@ idea_hub_venv/
 *.swo
 *~
 
-# OS
+# Logs
+*.log
+logs/
+build.log
+
+# Local development
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Uploads (user generated content)
+uploads/docs/*
+uploads/images/*
+uploads/pdfs/*
+!uploads/docs/.gitkeep
+!uploads/images/.gitkeep
+!uploads/pdfs/.gitkeep
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Node.js (if any frontend build tools)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker
+.dockerignore
+
+# OS generated files
 .DS_Store
 .DS_Store?
 ._*
@@ -47,65 +87,3 @@ idea_hub_venv/
 .Trashes
 ehthumbs.db
 Thumbs.db
-
-# Environment variables
-.env
-.env.local
-.env.development
-.env.test
-.env.production
-
-# Logs
-logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Database
-*.db
-*.sqlite
-*.sqlite3
-
-# Test files
-test_*.py
-*_test.py
-debug_*.py
-temp_*.py
-*_backup.py
-
-# Jupyter Notebooks
-.ipynb_checkpoints
-*.ipynb
-
-# Uploads (keep directory structure but ignore uploaded files)
-uploads/pdfs/*.pdf
-uploads/images/*
-uploads/docs/*
-
-# Temporary files
-*.tmp
-*.temp
-*.bak
-*.backup
-
-# Cache directories
-.cache/
-.pytest_cache/
-
-# Coverage reports
-htmlcov/
-.coverage
-.coverage.*
-coverage.xml
-*.cover
-.hypothesis/
-
-# Node modules (if any frontend components)
-node_modules/
-
-# Package files
-*.tgz
-*.tar.gz 
-.env
-idea_hub_env/

@@ -21,44 +21,96 @@ class HuggingFaceEmbeddingService:
     """Service for HuggingFace embeddings using the working mixedbread model"""
     
     def __init__(self):
-        # Use only the working mixedbread model path
-        self.model_path = "/Users/riskumar/.cache/huggingface/hub/models--mixedbread-ai--mxbai-embed-large-v1/snapshots/db9d1fe0f31addb4978201b2bf3e577f3f8900d2"
+        # Use static model configuration from settings
+        from config.settings import Config
+        self.model_name = Config.EMBEDDING_MODEL
         self.embedding_model = None
         self.current_model = None
-        self.embedding_dimension = 1024  # mixedbread dimension
+        self.embedding_dimension = 384   # all-MiniLM-L6-v2 dimension
         self._initialize()
     
     def _initialize(self):
-        """Initialize HuggingFace embeddings with mixedbread model"""
+        """Initialize HuggingFace embeddings with offline-first approach"""
         try:
-            if not os.path.exists(self.model_path):
-                logging.error(f"❌ Mixedbread model not found at: {self.model_path}")
-                self.embedding_model = None
-                return
+            logging.info(f"🔄 Initializing embedding model: {self.model_name}")
             
-            logging.info(f"🔄 Initializing mixedbread model: {self.model_path}")
-            
-            # Initialize the embedding model
+            # Initialize the embedding model with offline-first configuration
             self.embedding_model = HuggingFaceEmbeddings(
-                model_name=self.model_path,
-                model_kwargs={'device': 'cpu'}  # Force CPU for stability
+                model_name=self.model_name,
+                model_kwargs={
+                    'device': 'cpu',  # Force CPU for stability
+                    'local_files_only': True,  # Prevent internet access
+                    'trust_remote_code': False  # Security setting
+                }
             )
             
             # Test the model works
-            logging.info("🧪 Testing mixedbread model...")
+            logging.info("🧪 Testing embedding model...")
             test_embedding = self.embedding_model.embed_query("test embedding")
             
             if test_embedding and len(test_embedding) > 0:
-                self.current_model = self.model_path
+                self.current_model = self.model_name
                 self.embedding_dimension = len(test_embedding)
-                logging.info(f"✅ Mixedbread model initialized successfully!")
+                logging.info(f"✅ Embedding model initialized successfully!")
                 logging.info(f"📐 Embedding dimension: {self.embedding_dimension}")
             else:
-                logging.error("❌ Mixedbread model test failed - empty embedding returned")
+                logging.error("❌ Embedding model test failed - empty embedding returned")
                 self.embedding_model = None
                 
         except Exception as e:
-            logging.error(f"❌ Failed to initialize mixedbread model: {str(e)}")
+            logging.error(f"❌ Failed to initialize embedding model: {str(e)}")
+            
+            # Try fallback without local_files_only if it was a network issue
+            if "local_files_only" in str(e).lower() or "ssl" in str(e).lower() or "connection" in str(e).lower():
+                logging.warning("🔄 Retrying without local_files_only restriction...")
+                try:
+                    self.embedding_model = HuggingFaceEmbeddings(
+                        model_name=self.model_name,
+                        model_kwargs={'device': 'cpu'}
+                    )
+                    
+                    # Test the fallback model
+                    test_embedding = self.embedding_model.embed_query("test embedding")
+                    if test_embedding and len(test_embedding) > 0:
+                        self.current_model = self.model_name
+                        self.embedding_dimension = len(test_embedding)
+                        logging.warning(f"⚠️ Embedding model initialized with fallback method!")
+                        logging.info(f"📏 Model '{self.current_model}' embedding dimension: {self.embedding_dimension}")
+                        return
+                except Exception as fallback_e:
+                    logging.error(f"❌ Fallback initialization also failed: {fallback_e}")
+                    
+                    # Try direct sentence-transformers approach as last resort
+                    logging.warning("🔄 Trying direct sentence-transformers approach...")
+                    try:
+                        import sentence_transformers
+                        st_model = sentence_transformers.SentenceTransformer(self.model_name)
+                        
+                        # Create a wrapper that mimics HuggingFaceEmbeddings interface
+                        class STWrapper:
+                            def __init__(self, model):
+                                self.model = model
+                            
+                            def embed_query(self, text):
+                                return self.model.encode(text).tolist()
+                            
+                            def embed_documents(self, texts):
+                                return [self.model.encode(text).tolist() for text in texts]
+                        
+                        self.embedding_model = STWrapper(st_model)
+                        
+                        # Test the wrapper
+                        test_embedding = self.embedding_model.embed_query("test embedding")
+                        if test_embedding and len(test_embedding) > 0:
+                            self.current_model = self.model_name
+                            self.embedding_dimension = len(test_embedding)
+                            logging.warning(f"⚠️ Embedding model initialized with sentence-transformers wrapper!")
+                            logging.info(f"📏 Model '{self.current_model}' embedding dimension: {self.embedding_dimension}")
+                            return
+                    except Exception as st_e:
+                        logging.error(f"❌ Sentence-transformers fallback also failed: {st_e}")
+            
+            logging.warning("⚠️ Vector service will run without embeddings")
             self.embedding_model = None
     
     def is_available(self):
@@ -70,9 +122,9 @@ class HuggingFaceEmbeddingService:
         return self.embedding_model
     
     def generate_embedding(self, text):
-        """Generate embedding for a single text using mixedbread model"""
+        """Generate embedding for a single text using the configured model"""
         if not self.is_available():
-            logging.error("❌ Mixedbread embedding service not available")
+            logging.error("❌ Embedding service not available")
             return None
         
         try:
@@ -81,10 +133,10 @@ class HuggingFaceEmbeddingService:
             if embedding and len(embedding) > 0:
                 return embedding
             else:
-                logging.error("❌ Empty embedding returned from mixedbread model")
+                logging.error("❌ Empty embedding returned from model")
                 return None
         except Exception as e:
-            logging.error(f"❌ Error generating embedding with mixedbread: {e}")
+            logging.error(f"❌ Error generating embedding: {e}")
             return None
     
     def calculate_similarity(self, embedding1, embedding2):

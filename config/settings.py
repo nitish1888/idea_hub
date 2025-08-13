@@ -74,13 +74,13 @@ class Config:
     #=========================================================================
     
     # PostgreSQL database connection settings
-    # These settings must match your PostgreSQL installation and database setup
+    # Static configuration for OpenShift deployment
     DB_CONFIG = {
-        "dbname": os.getenv("PG_DB", "idea_hub_db"),           # Database name
-        "user": os.getenv("PG_USER", "idea_user"),             # Database user
-        "password": os.getenv("PG_PASS", "secure_idea_pass"),  # Database password
-        "host": os.getenv("PG_HOST", "localhost"),             # Database host
-        "port": os.getenv("PG_PORT", "5432")                   # Database port
+        "dbname": os.getenv("PG_DB"),                          # Database name (from secret)
+        "user": os.getenv("PG_USER"),                          # Database user (from secret)
+        "password": os.getenv("PG_PASS"),                      # Database password (from secret)
+        "host": os.getenv("PG_HOST"),                          # Database host (from secret)
+        "port": os.getenv("PG_PORT")                           # Database port (from secret)
     }
     
     # Complete PostgreSQL connection string for database operations
@@ -91,19 +91,19 @@ class Config:
     # VECTOR STORE CONFIGURATION
     #=========================================================================
     
-    # Vector database settings for semantic search capabilities
+    # Vector database settings for semantic search capabilities (static configuration)
     # These enable AI-powered similarity detection and search functionality
     VECTOR_TABLE_NAME = "idea_hub_embeddings"                 # Table storing vector embeddings
-    COLLECTION_NAME = os.getenv("COLLECTION_NAME", "idea_hub_collection")  # Vector collection identifier
+    COLLECTION_NAME = "idea_hub_collection"                    # Vector collection identifier (static)
     
     #=========================================================================
     # AI SERVICE CONFIGURATION
     #=========================================================================
     
     # Google Gemini AI configuration for text generation and analysis
-    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")          # API key (required for AI features)
-    GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")  # Model version for text generation
-    EMBEDDING_MODEL = "models/text-embedding-004"             # Model for vector embeddings
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")              # API key (from secret)
+    GEMINI_MODEL = "gemini-2.5-flash"                         # Model version (static)
+    EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"  # Smaller, reliable embedding model (384 dim)
     
     # Note: GEMINI_API_KEY must be set for AI features to work
     # Get your API key from: https://makersuite.google.com/app/apikey
@@ -112,17 +112,17 @@ class Config:
     # MCP AGENTIC AI CONFIGURATION
     #=========================================================================
     
-    # MCP (Model Context Protocol) configuration for tool calling with Gemini
+    # MCP (Model Context Protocol) configuration for tool calling with Gemini (static)
     # MCP enables Gemini to use tools and interact with external systems autonomously
-    MCP_ENABLED = os.getenv("MCP_ENABLED", "true").lower() == "true"
+    MCP_ENABLED = True                                         # Always enabled (static)
     
     #=========================================================================
     # FLASK APPLICATION CONFIGURATION
     #=========================================================================
     
-    # Flask web application settings
-    SECRET_KEY = os.getenv("SECRET_KEY", "f9db3a3845ebd2c5ce837b44ed420a09ce915f7d88edfbd3943da2305fc4d740")  # Session encryption key
-    DEBUG = os.getenv("DEBUG", "False").lower() == "true"     # Enable/disable debug mode (False for production)
+    # Flask web application settings (static for OpenShift)
+    SECRET_KEY = "f9db3a3845ebd2c5ce837b44ed420a09ce915f7d88edfbd3943da2305fc4d740"  # Session encryption key (static)
+    DEBUG = False                                              # Debug mode disabled for production (static)
     
     # SECURITY NOTE: Change SECRET_KEY for production deployment
     # Generate a secure key with: python -c "import secrets; print(secrets.token_hex(16))"

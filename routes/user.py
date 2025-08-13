@@ -77,8 +77,8 @@ def submit_idea():
             'description': description,
             'contributor': submitter_name,  # Map submitter_name to contributor field
             'category': category,
-            'impact': impact,
-            'status': 'Under Review'  # Use consistent status
+            'impact': impact
+            # Remove status field - let the model set defaults
         }
         
         result = IdeaModel.create_idea(idea_data)

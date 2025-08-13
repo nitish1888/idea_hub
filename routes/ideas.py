@@ -23,6 +23,16 @@ def initialize_database():
     except Exception as e:
         return jsonify({"status": "error", "error": str(e)}), 500
 
+@ideas_bp.route('/api/clear-vector-store', methods=['POST'])
+def clear_vector_store():
+    """Clear vector store and reinitialize (fixes dimension mismatch)"""
+    try:
+        result = vector_service.clear_vector_store()
+        return jsonify(result)
+    except Exception as e:
+        logging.error(f"❌ Error clearing vector store: {e}")
+        return jsonify({"status": "error", "error": str(e)}), 500
+
 @ideas_bp.route('/api/load-sample-data', methods=['POST'])
 def load_sample_data():
     """Load sample data from notebook into database and vector store"""
@@ -191,42 +201,44 @@ def submit_idea():
             vector_service.add_idea_to_vector_store(created_idea)
         
         # Check for similar ideas with AI-enhanced summaries for better user understanding
-        search_text = f"{data['title']} {data['description']} {data.get('abstract', '')}"
-        similar_ideas = vector_service.search_similar_ideas(search_text, top_k=5)
-        
-        # Check for high similarity (duplicates) first
-        for similar in similar_ideas:
-            if similar.get('similarity', 0) >= 80:  # High similarity threshold
-                try:
-                    # Generate AI summary for better user understanding
-                    ai_summary = ai_summary_service.generate_idea_summary(similar, max_words=250)
-                    
-                    # Generate comparison context
-                    comparison_context = ai_summary_service.generate_comparison_context(
-                        data, similar, similar.get('similarity', 0)
-                    )
-                    
-                except Exception as e:
-                    logging.error(f"AI summary generation failed: {e}")
-                    # Fallback to basic summary
-                    ai_summary = f"Idea: {similar.get('title', '')}. {similar.get('description', '')[:200]}..."
-                    comparison_context = f"Found {similar.get('similarity', 0):.1f}% similarity. Consider reviewing the existing idea."
-                # Return duplicate detection with AI insights
-                return jsonify({
-                    "status": "duplicate_detected",
-                    "message": f"Very similar idea found: '{similar['title']}' by {similar['contributor']}",
-                    "suggestion": "Review the existing idea summary below to decide if you should collaborate or proceed with differences",
-                    "duplicates": [{
-                        **similar,
-                        "ai_summary": ai_summary,
-                        "comparison_context": comparison_context
-                    }],
-                    "ai_insights": {
-                        "similarity_explanation": comparison_context,
-                        "existing_idea_summary": ai_summary,
-                        "recommendation": "Consider reaching out to collaborate or clearly differentiate your approach"
-                    }
-                }), 409  # Conflict status
+        # Only check if not overriding duplicate detection
+        if not override_duplicate:
+            search_text = f"{data['title']} {data['description']} {data.get('abstract', '')}"
+            similar_ideas = vector_service.search_similar_ideas(search_text, top_k=5)
+            
+            # Check for high similarity (duplicates) first
+            for similar in similar_ideas:
+                if similar.get('similarity', 0) >= 80:  # High similarity threshold
+                    try:
+                        # Generate AI summary for better user understanding
+                        ai_summary = ai_summary_service.generate_idea_summary(similar, max_words=250)
+                        
+                        # Generate comparison context
+                        comparison_context = ai_summary_service.generate_comparison_context(
+                            data, similar, similar.get('similarity', 0)
+                        )
+                        
+                    except Exception as e:
+                        logging.error(f"AI summary generation failed: {e}")
+                        # Fallback to basic summary
+                        ai_summary = f"Idea: {similar.get('title', '')}. {similar.get('description', '')[:200]}..."
+                        comparison_context = f"Found {similar.get('similarity', 0):.1f}% similarity. Consider reviewing the existing idea."
+                    # Return duplicate detection with AI insights
+                    return jsonify({
+                        "status": "duplicate_detected",
+                        "message": f"Very similar idea found: '{similar['title']}' by {similar['contributor']}",
+                        "suggestion": "Review the existing idea summary below to decide if you should collaborate or proceed with differences",
+                        "duplicates": [{
+                            **similar,
+                            "ai_summary": ai_summary,
+                            "comparison_context": comparison_context
+                        }],
+                        "ai_insights": {
+                            "similarity_explanation": comparison_context,
+                            "existing_idea_summary": ai_summary,
+                            "recommendation": "Consider reaching out to collaborate or clearly differentiate your approach"
+                        }
+                    }), 409  # Conflict status
         
         # Find collaboration opportunities (medium similarity)
         collaborations = vector_service.find_collaboration_opportunities(data)

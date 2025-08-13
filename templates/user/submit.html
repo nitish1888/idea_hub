@@ -20,6 +20,29 @@
                 <div class="card shadow-lg border-0">
                     <div class="card-body p-5">
                         <form id="ideaSubmissionForm">
+                            <!-- Duplicate Detection Results -->
+                            <div id="duplicateResults" class="alert alert-warning" style="display: none;">
+                                <div class="d-flex align-items-start">
+                                    <i class="fas fa-exclamation-triangle me-3 mt-1 text-warning"></i>
+                                    <div class="flex-grow-1">
+                                        <h5 class="alert-heading mb-3">⚠️ Similar Ideas Found!</h5>
+                                        <div id="duplicateMessage" class="mb-3"></div>
+                                        <div id="duplicateDetails" class="mb-3"></div>
+                                        <div class="d-flex gap-2 flex-wrap">
+                                            <button type="button" class="btn btn-warning" id="submitAnywayBtn">
+                                                <i class="fas fa-paper-plane me-2"></i>Submit Anyway
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary" id="reviewSimilarBtn">
+                                                <i class="fas fa-eye me-2"></i>Review Similar Ideas
+                                            </button>
+                                            <button type="button" class="btn btn-outline-info" id="modifyIdeaBtn">
+                                                <i class="fas fa-edit me-2"></i>Modify My Idea
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Personal Information -->
                             <div class="row mb-4">
                                 <div class="col-md-6">
@@ -156,15 +179,13 @@ document.getElementById('ideaSubmissionForm').addEventListener('submit', async f
         const formData = {
             title: document.getElementById('ideaTitle').value.trim(),
             description: document.getElementById('ideaDescription').value.trim(),
-            submitter_name: document.getElementById('submitterName').value.trim(),
-            submitter_email: document.getElementById('submitterEmail').value.trim(),
+            contributor: document.getElementById('submitterName').value.trim(),
             category: document.getElementById('ideaCategory').value,
-            impact: document.getElementById('ideaImpact').value,
-            effort: document.getElementById('ideaEffort').value,
-            looking_for_contributors: document.getElementById('lookingForContributors').checked
+            impact: document.getElementById('ideaImpact').value
+            // Note: Using working /api/ideas/submit endpoint instead of broken /api/user/submit-idea
         };
         
-        const response = await fetch('/api/user/submit-idea', {
+        const response = await fetch('/api/ideas/submit', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -174,7 +195,10 @@ document.getElementById('ideaSubmissionForm').addEventListener('submit', async f
         
         const result = await response.json();
         
-        if (result.status === 'success') {
+        if (response.status === 409) {
+            // Handle duplicate detection
+            showDuplicateResults(result);
+        } else if (response.ok && result.status === 'success') {
             // Hide form and show success message
             document.getElementById('ideaSubmissionForm').style.display = 'none';
             document.getElementById('successMessage').style.display = 'block';
@@ -185,7 +209,7 @@ document.getElementById('ideaSubmissionForm').addEventListener('submit', async f
                 block: 'center' 
             });
         } else {
-            throw new Error(result.message || 'Submission failed');
+            throw new Error(result.error || result.message || 'Submission failed');
         }
         
     } catch (error) {
@@ -196,6 +220,104 @@ document.getElementById('ideaSubmissionForm').addEventListener('submit', async f
         submitBtn.innerHTML = originalText;
         submitBtn.disabled = false;
     }
+});
+
+// Show duplicate detection results
+function showDuplicateResults(data) {
+    const duplicateDiv = document.getElementById('duplicateResults');
+    const messageDiv = document.getElementById('duplicateMessage');
+    const detailsDiv = document.getElementById('duplicateDetails');
+    
+    messageDiv.innerHTML = `<strong>${data.message}</strong><br><small class="text-muted">${data.suggestion}</small>`;
+    
+    if (data.duplicates && data.duplicates.length > 0) {
+        const duplicatesHtml = data.duplicates.map(dup => `
+            <div class="card mb-2">
+                <div class="card-body p-3">
+                    <h6 class="card-title mb-2">
+                        <i class="fas fa-lightbulb text-warning me-2"></i>
+                        ${dup.title} <small class="text-muted">by ${dup.contributor}</small>
+                    </h6>
+                    <div class="mb-2">
+                        <span class="badge bg-info">${dup.similarity}% similar</span>
+                        <span class="badge bg-secondary">${dup.category}</span>
+                        <span class="badge bg-success">${dup.impact} Impact</span>
+                    </div>
+                    ${dup.ai_summary ? `<p class="card-text small text-muted mb-2">${dup.ai_summary.substring(0, 200)}...</p>` : ''}
+                    ${dup.comparison_context ? `<div class="alert alert-light p-2 mb-0"><small><strong>Why similar:</strong> ${dup.comparison_context}</small></div>` : ''}
+                </div>
+            </div>
+        `).join('');
+        
+        detailsDiv.innerHTML = `
+            <div class="mt-3">
+                <h6>Similar Ideas in the Hub:</h6>
+                ${duplicatesHtml}
+            </div>
+        `;
+    }
+    
+    duplicateDiv.style.display = 'block';
+    duplicateDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    
+    // Reset submit button
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.innerHTML = '<i class="fas fa-lightbulb me-2"></i>Submit My Idea';
+    submitBtn.disabled = false;
+}
+
+// Submit anyway functionality
+document.getElementById('submitAnywayBtn').addEventListener('click', async function() {
+    const formData = {
+        title: document.getElementById('ideaTitle').value.trim(),
+        description: document.getElementById('ideaDescription').value.trim(),
+        contributor: document.getElementById('submitterName').value.trim(),
+        category: document.getElementById('ideaCategory').value,
+        impact: document.getElementById('ideaImpact').value,
+        override_duplicate: true
+    };
+    
+    try {
+        this.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Submitting...';
+        this.disabled = true;
+        
+        const response = await fetch('/api/ideas/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok && result.status === 'success') {
+            document.getElementById('ideaSubmissionForm').style.display = 'none';
+            document.getElementById('successMessage').style.display = 'block';
+            document.getElementById('successMessage').scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'center' 
+            });
+        } else {
+            throw new Error(result.error || 'Failed to submit');
+        }
+        
+    } catch (error) {
+        console.error('Submit anyway error:', error);
+        alert('Error submitting idea: ' + error.message);
+        this.innerHTML = '<i class="fas fa-paper-plane me-2"></i>Submit Anyway';
+        this.disabled = false;
+    }
+});
+
+// Hide duplicate results and return to form
+document.getElementById('modifyIdeaBtn').addEventListener('click', function() {
+    document.getElementById('duplicateResults').style.display = 'none';
+});
+
+// Review similar ideas (placeholder)
+document.getElementById('reviewSimilarBtn').addEventListener('click', function() {
+    window.open('/browse', '_blank');
 });
 </script>
 {% endblock %}
