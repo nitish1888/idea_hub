@@ -106,7 +106,7 @@ oc get route idea-hub-updated-new -o jsonpath='{.spec.host}' && echo
 ### Test Application
 Visit the URL in your browser:
 ```
-https://idea-hub-updated-new-trend-analysis-using-ai--runtime-int.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com
+https://idea-hub-updated-new-trend-analysis-using-ai--runtime-int.apps.int.spoke.preprod.us-east-1.aws.your-domain.com
 ```
 
 ---
@@ -157,7 +157,7 @@ oc create secret docker-registry nitsingh-quay-pull-secret \
   --docker-server=quay.io \
   --docker-username=rhn-support-nitsingh \
   --docker-password=WYMhHyCMjtm3RAEA+MaZZPb7GiFtWcxIW3JXa0+DdqtaqouieyOIyFOK/eYE8lJ0 \
-  --docker-email=nitsingh@redhat.com
+  --docker-email=nitsingh@company.com
 
 # Update deployment to use the secret
 oc patch deployment idea-hub-updated-new -p '{"spec":{"template":{"spec":{"imagePullSecrets":[{"name":"nitsingh-quay-pull-secret"}]}}}}'
@@ -264,12 +264,12 @@ podman search quay.io/rhn-support-nitsingh/idea-hub-updated
 
 ### Production
 ```
-https://idea-hub-updated-new-trend-analysis-using-ai--runtime-int.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com
+https://idea-hub-updated-new-trend-analysis-using-ai--runtime-int.apps.int.spoke.preprod.us-east-1.aws.your-domain.com
 ```
 
 ### Health Check
 ```
-https://idea-hub-updated-new-trend-analysis-using-ai--runtime-int.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com/api/health
+https://idea-hub-updated-new-trend-analysis-using-ai--runtime-int.apps.int.spoke.preprod.us-east-1.aws.your-domain.com/api/health
 ```
 
 ---

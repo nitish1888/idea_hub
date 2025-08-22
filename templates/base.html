@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Red Hat Idea Hub{% endblock %}</title>
+    <title>{% block title %}Idea Hub{% endblock %}</title>
     
-    <!-- Red Hat Theme CSS -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/red-hat-theme.css') }}">
+    <!-- Theme CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/theme.css') }}">
     
     <!-- Chart.js for visualizations -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -31,7 +31,7 @@
             <!-- Main Title -->
             <div style="text-align: center;">
                 <h1 class="header-title">
-                    Red Hat Idea Hub
+                    Idea Hub
                 </h1>
                 <p class="header-subtitle">Innovate Together, Powered by AI</p>
             </div>
@@ -141,9 +141,9 @@
             
             <div class="ai-chat-body">
                 <div class="ai-welcome-message">
-                    <i class="fas fa-lightbulb" style="color: var(--red-hat-red);"></i>
+                    <i class="fas fa-lightbulb" style="color: var(--primary-red);"></i>
                     <p><strong>Quick AI Research</strong></p>
-                    <p style="font-size: 0.9rem; margin-top: 0.5rem;">Ask me anything about Red Hat innovations, market trends, or get strategic insights!</p>
+                    <p style="font-size: 0.9rem; margin-top: 0.5rem;">Ask me anything about innovations, market trends, or get strategic insights!</p>
                 </div>
                 
                 <div class="ai-quick-actions">
@@ -177,7 +177,7 @@
     <!-- Footer -->
     <footer class="footer">
         <div class="footer-content">
-            <p>&copy; 2025 Red Hat Idea Hub - Proof of Concept</p>
+            <p>&copy; 2025 Idea Hub - Proof of Concept</p>
             <p>Demonstrating AI-powered innovation management capabilities</p>
         </div>
     </footer>
@@ -274,10 +274,10 @@
             
             switch(action) {
                 case 'trends':
-                    query = 'Analyze current innovation trends in enterprise technology and Red Hat market opportunities';
+                    query = 'Analyze current innovation trends in enterprise technology and market opportunities';
                     break;
                 case 'similar':
-                    query = 'Find similar ideas in the Red Hat innovation database and identify potential collaboration opportunities';
+                    query = 'Find similar ideas in the innovation database and identify potential collaboration opportunities';
                     break;
                 case 'feasibility':
                     query = 'Evaluate technical feasibility and implementation challenges for emerging technology ideas';

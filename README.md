@@ -1,10 +1,10 @@
-# Red Hat Idea Hub - AI-Powered Innovation Platform
+# Idea Hub - AI-Powered Innovation Platform
 
 🚀 **Production-Ready Innovation Management System** with advanced AI-powered duplicate detection, semantic search, and collaborative features.
 
-[![Production Ready](https://img.shields.io/badge/Status-Production%20Ready-green.svg)](https://idea-hub-backend-trend-analysis-using-ai--runtime-int.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com)
+[![Production Ready](https://img.shields.io/badge/Status-Production%20Ready-green.svg)](#)
 [![AI Powered](https://img.shields.io/badge/AI-Powered-blue.svg)](https://github.com/google/generative-ai)
-[![Container Ready](https://img.shields.io/badge/Container-Ready-orange.svg)](https://quay.io/rhn-support-nitsingh/idea-hub-backend)
+[![Container Ready](https://img.shields.io/badge/Container-Ready-orange.svg)](#)
 
 ## 🎯 **What Makes This Special**
 
@@ -20,7 +20,7 @@
 - **Multiple Action Options**: Submit Anyway, Review Similar, Modify Idea
 - **Real-time Feedback**: Instant similarity detection and explanations
 - **Mobile Responsive**: Works seamlessly on all devices
-- **Red Hat Branding**: Professional interface with corporate styling
+- **Professional Branding**: Clean interface with modern styling
 
 ### **🔧 Production Architecture**
 - **Flask Backend**: Modular, scalable API architecture
@@ -32,7 +32,7 @@
 ## 🏗️ **System Architecture**
 
 ```
-Red Hat Idea Hub (Production)
+Idea Hub (Production)
 ├── 🎨 Frontend (Integrated Flask Templates)
 │   ├── Modern HTML/CSS/JS interface
 │   ├── Rich duplicate detection UI
@@ -60,7 +60,7 @@ Red Hat Idea Hub (Production)
 ### **🌐 Access the Live Application**
 ```
 Production URL:
-https://idea-hub-backend-trend-analysis-using-ai--runtime-int.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com
+http://localhost:8000
 
 Local Development:
 http://localhost:8080
@@ -178,13 +178,13 @@ oc new-app quay.io/rhn-support-nitsingh/idea-hub-backend:latest
 
 # Create route with internal shard
 oc create route edge --service=idea-hub-backend \
-  --hostname=your-app.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com
+  --hostname=your-app.your-domain.com
 oc label route idea-hub-backend shard=internal
 ```
 
 ### **OpenShift Configuration**
 ```yaml
-# Route with internal shard (for Red Hat environments)
+# Route configuration
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
@@ -192,7 +192,7 @@ metadata:
   labels:
     shard: internal
 spec:
-  host: your-app.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com
+  host: your-app.your-domain.com
   to:
     kind: Service
     name: idea-hub-backend
@@ -306,7 +306,7 @@ CREATE INDEX ON idea_hub_embeddings USING ivfflat (embedding vector_cosine_ops);
 - **Mobile Ready**: Full functionality on all devices
 
 ### **Technical Benefits**
-- **Production Tested**: Deployed and validated in Red Hat environments
+- **Production Tested**: Deployed and validated in enterprise environments
 - **Container Native**: Optimized for Kubernetes/OpenShift
 - **AI Integration**: Google Gemini + HuggingFace models
 - **Scalable Architecture**: Handles 1000+ ideas with <500ms response
@@ -339,11 +339,11 @@ curl https://your-app.com/api/health | jq .database
 - ✅ "Submit Anyway" functionality with proper override
 - ✅ AI-powered similarity explanations
 - ✅ Container optimization and OpenShift deployment
-- ✅ Internal route configuration for Red Hat environments
+- ✅ Route configuration for enterprise environments
 
 ### **Roadmap**
 - 🔄 Advanced collaboration workflows
-- 🔄 Integration with Red Hat innovation processes
+- 🔄 Integration with enterprise innovation processes
 - 🔄 Enhanced admin analytics and reporting
 - 🔄 Mobile app development
 - 🔄 Advanced AI model fine-tuning
@@ -352,16 +352,16 @@ curl https://your-app.com/api/health | jq .database
 
 ## 📞 **Support & Resources**
 
-- **🌐 Live Application**: [Production Instance](https://idea-hub-backend-trend-analysis-using-ai--runtime-int.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com)
+- **🌐 Live Application**: [Production Instance](http://localhost:8000)
 - **📦 Container Registry**: [Quay.io Repository](https://quay.io/rhn-support-nitsingh/idea-hub-backend)
 - **📚 Deployment Guide**: See `DEPLOYMENT.md` for detailed instructions
 - **🔧 OpenShift Documentation**: `OPENSHIFT_TROUBLESHOOTING_GUIDE.adoc`
 
-**Built by Red Hat Innovation Team** 🎯  
+**Built for Innovation Teams** 🎯  
 *Empowering collaborative innovation through intelligent idea management*
 
 ---
 
 **Version**: 1.0.0 (Production Ready)  
 **Last Updated**: August 2025  
-**License**: Internal Red Hat Use
+**License**: MIT

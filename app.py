@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Red Hat Idea Hub - Flask API Backend Server
+Idea Hub - Flask API Backend Server
 ===========================================
 
 This is the main Flask application server that provides the REST API backend
-for the Red Hat Idea Hub innovation management platform.
+for the Idea Hub innovation management platform.
 
 Architecture:
 ------------
@@ -43,7 +43,7 @@ Usage:
 3. Run: python app.py
 4. API available at: http://localhost:5001
 
-Author: Red Hat Innovation Team
+Author: Innovation Team
 Last Updated: 2025
 """
 

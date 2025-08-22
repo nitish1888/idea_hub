@@ -1,5 +1,5 @@
 """
-Models module for Red Hat Idea Hub
+Models module for Idea Hub
 """
 
 from .idea import IdeaModel

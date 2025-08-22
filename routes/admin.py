@@ -1,5 +1,5 @@
 """
-Red Hat Idea Hub - Admin Routes
+Idea Hub - Admin Routes
 ===============================
 
 Protected admin routes for the dual-view architecture.
@@ -165,7 +165,7 @@ def get_comprehensive_ai_insights():
             ideas_summary += f". Top categories: {', '.join([f'{k}({v})' for k,v in list(top_categories.items())[:3]])}"
         
         analysis_prompt = f"""
-        As a Red Hat innovation strategist, analyze this data and provide clear insights:
+        As a Company innovation strategist, analyze this data and provide clear insights:
         
         DATA: {ideas_summary}. {contributors_summary}. Recent submissions: {', '.join([idea.get('title', 'Untitled')[:40] for idea in ideas[:3]])}
         
@@ -186,7 +186,7 @@ def get_comprehensive_ai_insights():
         • [Second actionable recommendation]
         • [Third actionable recommendation]
         
-        Keep each point under 120 characters. Focus on actionable business insights for Red Hat leadership.
+        Keep each point under 120 characters. Focus on actionable business insights for Company leadership.
         """
         
         # Get AI analysis (with longer timeout for complex analysis)

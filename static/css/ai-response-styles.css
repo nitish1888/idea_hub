@@ -1,4 +1,4 @@
-/* Enhanced AI Response Styling - Red Hat Theme */
+/* Enhanced AI Response Styling - Company Theme */
 
 /* Main AI Analysis Container */
 .ai-analysis-container {
@@ -8,7 +8,7 @@
     padding: 1.5rem;
     margin: 1rem 0;
     box-shadow: 0 4px 16px rgba(0,0,0,0.1);
-    font-family: "Red Hat Display", "Overpass", Arial, sans-serif;
+    font-family: "Inter", "Overpass", Arial, sans-serif;
 }
 
 .analysis-paragraph {
@@ -53,7 +53,7 @@
     border-left: 2px solid #c7c7c7;
 }
 
-/* Metrics and Numbers - Red Hat Theme */
+/* Metrics and Numbers - Company Theme */
 .metric {
     background: #EE0000;
     color: white;
@@ -84,7 +84,7 @@
     border: 1px solid #EE0000;
 }
 
-/* Research Timeline - Red Hat Theme */
+/* Research Timeline - Company Theme */
 .research-timeline {
     background: #f5f5f5;
     border-radius: 8px;
@@ -150,7 +150,7 @@
     color: #151515;
 }
 
-/* Trends Results - Red Hat Theme */
+/* Trends Results - Company Theme */
 .trends-result {
     background: #ffffff;
     border-radius: 4px;
@@ -215,7 +215,7 @@
     font-weight: 500;
 }
 
-/* Similar Ideas Results - Red Hat Theme */
+/* Similar Ideas Results - Company Theme */
 .result-summary {
     background: #ffebee;
     color: #EE0000;
@@ -352,7 +352,7 @@
     gap: 0.5rem;
 }
 
-/* Tools Summary - Red Hat Theme */
+/* Tools Summary - Company Theme */
 .tools-summary {
     background: #f5f5f5;
     border-radius: 4px;
@@ -399,7 +399,7 @@
     background: #EE0000;
 }
 
-/* Message Improvements - Red Hat Theme */
+/* Message Improvements - Company Theme */
 .message.assistant {
     background: #ffffff;
     border: 2px solid #e6e6e6;
@@ -408,7 +408,7 @@
     margin: 1rem 0;
     box-shadow: 0 4px 16px rgba(0,0,0,0.1);
     overflow: hidden;
-    font-family: "Red Hat Display", "Overpass", Arial, sans-serif;
+    font-family: "Inter", "Overpass", Arial, sans-serif;
 }
 
 .message.system {

@@ -1,5 +1,5 @@
 """
-Red Hat Idea Hub - Database Connection Management
+Idea Hub - Database Connection Management
 ================================================
 
 This module handles all PostgreSQL database connections and provides utilities
@@ -38,7 +38,7 @@ conn = get_db_connection()
 # Test connection health
 status = test_connection()
 
-Author: Red Hat Innovation Team
+Author: Innovation Team
 Last Updated: 2025
 """
 

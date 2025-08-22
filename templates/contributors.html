@@ -271,7 +271,7 @@ function displayContributors() {
     const contributorsHtml = filteredContributors.map(contributor => `
         <div class="contributor-card" style="background: white; border: 2px solid var(--gray-200); border-radius: 1rem; padding: 1.5rem; transition: var(--transition-all); cursor: pointer;" onclick="showContributorDetails(${contributor.id})">
             <div style="text-align: center; margin-bottom: 1rem;">
-                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--red-hat-red), var(--red-hat-red-dark)); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: white; font-size: 1.5rem; font-weight: bold;">
+                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary-red), var(--primary-red-dark)); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: white; font-size: 1.5rem; font-weight: bold;">
                     ${contributor.name.charAt(0).toUpperCase()}
                 </div>
                 <h4 style="margin: 0 0 0.5rem 0; color: var(--gray-900); font-size: 1.1rem;">
@@ -284,11 +284,11 @@ function displayContributors() {
             
             <div style="margin-bottom: 1rem;">
                 <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
-                    <i class="fas fa-clock" style="color: var(--red-hat-red); font-size: 0.9rem;"></i>
+                    <i class="fas fa-clock" style="color: var(--primary-red); font-size: 0.9rem;"></i>
                     <span style="font-size: 0.9rem; color: var(--gray-700);">${contributor.hours} hours/week</span>
                 </div>
                 <div style="display: flex; align-items: flex-start; gap: 0.5rem;">
-                    <i class="fas fa-tools" style="color: var(--red-hat-red); font-size: 0.9rem; margin-top: 0.1rem;"></i>
+                    <i class="fas fa-tools" style="color: var(--primary-red); font-size: 0.9rem; margin-top: 0.1rem;"></i>
                     <div style="flex: 1;">
                         <div style="font-size: 0.85rem; color: var(--gray-700); line-height: 1.4;">
                             ${contributor.skillset.split(',').slice(0, 3).map(s => s.trim()).join(', ')}
@@ -299,7 +299,7 @@ function displayContributors() {
             </div>
             
             <div style="text-align: center; margin-top: 1rem;">
-                <span style="color: var(--red-hat-red); font-weight: 600; font-size: 0.85rem;">
+                <span style="color: var(--primary-red); font-weight: 600; font-size: 0.85rem;">
                     View Details <i class="fas fa-arrow-right"></i>
                 </span>
             </div>

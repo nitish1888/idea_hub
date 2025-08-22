@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - Red Hat Idea Hub{% endblock %}
+{% block title %}Dashboard - Idea Hub{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -259,7 +259,7 @@ function displayAIInsights(insights) {
     // Show only first 2 insights to keep it compact
     const limitedInsights = insights.slice(0, 2);
     const insightsHtml = limitedInsights.map((insight, index) => `
-        <div style="background: var(--gray-50); padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem; border-left: 3px solid var(--red-hat-red);">
+        <div style="background: var(--gray-50); padding: 1rem; border-radius: 0.5rem; margin-bottom: 0.5rem; border-left: 3px solid var(--primary-red);">
             <p style="margin: 0; font-size: 0.9rem; color: var(--gray-700);">${insight}</p>
         </div>
     `).join('');

@@ -1,5 +1,5 @@
 """
-Red Hat Idea Hub - MCP Agentic AI Routes
+Idea Hub - MCP Agentic AI Routes
 ========================================
 
 API endpoints for MCP-based agentic AI features

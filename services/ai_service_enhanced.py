@@ -1,5 +1,5 @@
 """
-Red Hat Idea Hub - Enhanced AI Service with MCP Integration
+Idea Hub - Enhanced AI Service with MCP Integration
 ==========================================================
 
 This module provides enhanced AI service integration that combines:

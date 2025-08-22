@@ -171,12 +171,12 @@ Frontend → API Gateway → Agent Orchestrator → [Agent Pool] → Data Layer
 
 ## 📞 Contact & Demo
 
-**Live Platform:** https://idea-hub-repo.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com
+**Live Platform:** https://idea-hub-repo.apps.int.spoke.preprod.us-east-1.aws.your-domain.com
 
 **Team:**
-- **Nitish Singh** (Lead) - [Rover Profile](https://rover.redhat.com/people/profile/nitsingh)
-- **Rishika Kumar** (Contributor) - [Rover Profile](https://rover.redhat.com/people/profile/riskumar)  
-- **Shubham Chilhate** (Contributor) - [Rover Profile](https://rover.redhat.com/people/profile/schilhat)
+- **Nitish Singh** (Lead) - [Rover Profile](https://rover.company.com/people/profile/nitsingh)
+- **Rishika Kumar** (Contributor) - [Rover Profile](https://rover.company.com/people/profile/riskumar)  
+- **Shubham Chilhate** (Contributor) - [Rover Profile](https://rover.company.com/people/profile/schilhat)
 
 **Technology Stack:** Flask + Google Gemini + LangChain + HuggingFace + PostgreSQL + OpenShift
 

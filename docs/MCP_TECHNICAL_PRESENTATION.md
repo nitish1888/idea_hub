@@ -1,4 +1,4 @@
-# Red Hat Idea Hub: Multi-Agent MCP Architecture
+# Idea Hub: Multi-Agent MCP Architecture
 ## Technical Presentation for Enterprise Innovation Platform
 
 ---
@@ -20,7 +20,7 @@
 - **External AI Services**: Google Gemini, HuggingFace
 
 ### **Deployment Environment:**
-- **Platform**: Red Hat OpenShift (Managed Platform Plus)
+- **Platform**: Company OpenShift (Managed Platform Plus)
 - **Pods**: 2 main pods (idea-hub-new, idea-hub-mcp-server)
 - **Networking**: Internal routes with TLS edge termination
 - **Security**: Secrets management, RBAC, network policies
@@ -268,7 +268,7 @@ External AI Services ←-------------------------------------------┘
 - **Data Encryption**: TLS in transit, encrypted at rest
 
 ### **Compliance Considerations:**
-- **Data Residency**: All processing within Red Hat infrastructure
+- **Data Residency**: All processing within Company infrastructure
 - **Access Controls**: Granular permissions per agent/tool
 - **Audit Trails**: Full observability of AI decisions
 - **Privacy Protection**: No external data sharing
@@ -396,9 +396,9 @@ Scalability:
 ## 🔗 Technical Resources
 
 ### **Live System URLs:**
-- **Web Interface**: `https://idea-hub-new-trend-analysis-using-ai--runtime-int.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com`
+- **Web Interface**: `https://idea-hub-new-trend-analysis-using-ai--runtime-int.apps.int.spoke.preprod.us-east-1.aws.your-domain.com`
 - **API Base**: `/api/*` endpoints
-- **MCP Server**: `https://idea-hub-mcp-server-trend-analysis-using-ai--runtime-int.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com`
+- **MCP Server**: `https://idea-hub-mcp-server-trend-analysis-using-ai--runtime-int.apps.int.spoke.preprod.us-east-1.aws.your-domain.com`
 
 ### **API Endpoints for Demo:**
 - `GET /api/health` - System health status

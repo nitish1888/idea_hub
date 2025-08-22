@@ -228,8 +228,8 @@ async def multi_agent_process(input_data):
 - 💼 **Technology transfer** initiatives
 
 **Contact:**
-- **Nitish Singh** - [Rover Profile](https://rover.redhat.com/people/profile/nitsingh)
-- **Live Demo:** https://idea-hub-repo.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com
+- **Nitish Singh** - [Rover Profile](https://rover.company.com/people/profile/nitsingh)
+- **Live Demo:** https://idea-hub-repo.apps.int.spoke.preprod.us-east-1.aws.your-domain.com
 - **Team:** Rishika Kumar, Shubham Chilhate
 
 ---

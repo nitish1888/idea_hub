@@ -19,7 +19,7 @@ The issue was using standard OpenShift route configuration instead of Managed Pl
 
 According to OpenShift MPP documentation, internal shard routes require:
 
-1. **Simplified hostname pattern**: `<app-name>.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com`
+1. **Simplified hostname pattern**: `<app-name>.apps.int.spoke.preprod.us-east-1.aws.your-domain.com`
 2. **Required shard label**: `shard: internal`
 3. **TLS configuration**: Must include `termination: edge` with `insecureEdgeTerminationPolicy: Redirect`
 
@@ -33,7 +33,7 @@ metadata:
   labels:
     shard: internal
 spec:
-  host: idea-hub.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com
+  host: idea-hub.apps.int.spoke.preprod.us-east-1.aws.your-domain.com
   to:
     kind: Service
     name: idea-hub
@@ -49,7 +49,7 @@ spec:
 
 | Aspect | Standard OpenShift | Managed Platform Plus |
 |--------|-------------------|------------------------|
-| Hostname | Long complex names | Simplified: `<app>.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com` |
+| Hostname | Long complex names | Simplified: `<app>.apps.int.spoke.preprod.us-east-1.aws.your-domain.com` |
 | Shard Label | Optional | **Required**: `shard: internal` |
 | TLS | Optional for internal | **Required**: `termination: edge` |
 | SSL Policy | Can be disabled | **Must use**: `insecureEdgeTerminationPolicy: Redirect` |
@@ -81,7 +81,7 @@ curl -k -I "https://<hostname>/"
 ### Final Working URL Format
 
 ```
-https://idea-hub.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com
+https://idea-hub.apps.int.spoke.preprod.us-east-1.aws.your-domain.com
 ```
 
 ### Lessons Learned

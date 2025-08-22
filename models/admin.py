@@ -1,5 +1,5 @@
 """
-Red Hat Idea Hub - Admin User Model (Database-Based)
+Idea Hub - Admin User Model (Database-Based)
 ==================================================
 
 Database-based admin authentication system with proper security.
@@ -82,8 +82,8 @@ class AdminAuth(UserMixin):
             if count == 0:
                 # Create default admin users
                 default_admins = [
-                    ("admin", "hello", "admin@redhat.com"),
-                    ("rhadmin", "redhat123", "rhadmin@redhat.com")
+                    ("admin", "hello", "admin@company.com"),
+                    ("rhadmin", "company123", "rhadmin@company.com")
                 ]
                 
                 for username, password, email in default_admins:

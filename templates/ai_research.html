@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}AI Research Assistant - Red Hat Idea Hub{% endblock %}
+{% block title %}AI Research Assistant - Idea Hub{% endblock %}
 
 {% block extra_head %}
 
@@ -38,7 +38,7 @@
 }
 
 .chat-header {
-    background: var(--red-hat-red);
+    background: var(--primary-red);
     color: white;
     padding: 1rem;
     border-radius: 1rem 1rem 0 0;
@@ -76,7 +76,7 @@
 
 .chat-send-btn {
     padding: 0.75rem 1.5rem;
-    background: var(--red-hat-red);
+    background: var(--primary-red);
     color: white;
     border: none;
     border-radius: 0.5rem;
@@ -85,7 +85,7 @@
 }
 
 .chat-send-btn:hover {
-    background: var(--red-hat-dark);
+    background: var(--primary-dark);
 }
 
 .chat-send-btn:disabled {
@@ -101,7 +101,7 @@
 }
 
 .message.user {
-    background: var(--red-hat-red);
+    background: var(--primary-red);
     color: white;
     margin-left: auto;
     border-bottom-right-radius: 0.25rem;
@@ -151,8 +151,8 @@
 }
 
 .example-btn:hover {
-    background: var(--red-hat-light);
-    border-color: var(--red-hat-red);
+    background: var(--primary-light);
+    border-color: var(--primary-red);
 }
 
 .tool-indicator {
@@ -227,7 +227,7 @@
     <div class="research-main">
         <div style="margin-bottom: 2rem;">
             <h1 style="color: var(--gray-900); margin: 0 0 0.5rem 0;">
-                <i class="fas fa-robot" style="color: var(--red-hat-red);"></i>
+                <i class="fas fa-robot" style="color: var(--primary-red);"></i>
                 AI Research Assistant
             </h1>
             <p style="color: var(--gray-600); margin: 0; font-size: 1.1rem;">
@@ -257,7 +257,7 @@
                 <div class="message system">
                     <i class="fas fa-info-circle"></i>
                     <strong>Welcome to the AI Research Assistant!</strong><br>
-                    I can autonomously research ideas, analyze trends, evaluate feasibility, and provide strategic insights using Red Hat's innovation data.
+                    I can autonomously research ideas, analyze trends, evaluate feasibility, and provide strategic insights using Company's innovation data.
                 </div>
             </div>
             
@@ -274,7 +274,7 @@
             <div class="chat-input-area">
                 <div class="chat-input-group">
                     <input type="text" id="research-input" class="chat-input" 
-                           placeholder="Ask me to research anything about Red Hat innovations..." 
+                           placeholder="Ask me to research anything about innovations..." 
                            maxlength="500">
                     <button id="send-research" class="chat-send-btn">
                         <i class="fas fa-paper-plane"></i>
@@ -292,13 +292,13 @@
         <!-- Quick Examples -->
         <div class="sidebar-card">
             <h3><i class="fas fa-lightbulb"></i> Research Examples</h3>
-            <button class="example-btn" data-query="Research blockchain opportunities for Red Hat enterprise solutions">
+            <button class="example-btn" data-query="Research blockchain opportunities for Company enterprise solutions">
                 🔗 Blockchain Enterprise Opportunities
             </button>
-            <button class="example-btn" data-query="Analyze AI/ML trends and competitive landscape for Red Hat">
+            <button class="example-btn" data-query="Analyze AI/ML trends and competitive landscape for Company">
                 🤖 AI/ML Market Analysis
             </button>
-            <button class="example-btn" data-query="Evaluate feasibility of quantum computing integration with Red Hat products">
+            <button class="example-btn" data-query="Evaluate feasibility of quantum computing integration with Company products">
                 ⚛️ Quantum Computing Feasibility
             </button>
             <button class="example-btn" data-query="Research edge computing innovations and implementation roadmap">
@@ -481,10 +481,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (type === 'assistant') {
             // Simple markdown to HTML conversion
             content = content
-                .replace(/## (.*)/g, '<h4 style="color: var(--red-hat-red); font-weight: bold; margin-top: 1rem; margin-bottom: 0.5rem;">$1</h4>')
+                .replace(/## (.*)/g, '<h4 style="color: var(--primary-red); font-weight: bold; margin-top: 1rem; margin-bottom: 0.5rem;">$1</h4>')
                 .replace(/• (.*)/g, '<li style="margin-bottom: 0.3rem;">$1</li>')
                 .replace(/(\d+\.) (.*)/g, '<li style="margin-bottom: 0.3rem; font-weight: bold;">$2</li>')
-                .replace(/\*\*(.*?)\*\*/g, '<strong style="color: var(--red-hat-red);">$1</strong>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong style="color: var(--primary-red);">$1</strong>')
                 .replace(/\n/g, '<br>');
             
             // Wrap lists

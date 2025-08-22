@@ -1,4 +1,4 @@
-# 🚀 Idea Hub - AI-Powered Innovation Platform
+# 🚀 Idea Hub - Complete Usage Guide
 
 ## 📖 Overview
 
@@ -19,7 +19,8 @@ Idea Hub is an AI-powered innovation management platform that helps organization
 ### 📋 Prerequisites
 
 - Python 3.8+
-- PostgreSQL database with pgvector extension
+- PostgreSQL database
+- Node.js (for frontend assets)
 - Git
 
 ### 🔧 Installation
@@ -43,8 +44,9 @@ pip install -r requirements.txt
 
 4. **Configure environment:**
 ```bash
-# Update config/settings.py with your credentials
+# Copy example config
 cp config/settings.py.example config/settings.py
+# Edit config/settings.py with your credentials
 ```
 
 ### 🔑 Environment Configuration
@@ -61,10 +63,12 @@ PG_PASS = "your_db_password"
 
 # AI Service Configuration
 GEMINI_API_KEY = "your_gemini_api_key"
+HF_TOKEN = "your_huggingface_token"
 
 # Application Settings
-SECRET_KEY = "your_secret_key_here"
+FLASK_ENV = "development"
 DEBUG = True
+SECRET_KEY = "your_secret_key_here"
 ```
 
 ### 🗄️ Database Setup
@@ -80,6 +84,11 @@ CREATE EXTENSION IF NOT EXISTS vector;
 python -c "from database.setup import init_database; init_database()"
 ```
 
+3. **Load sample data (optional):**
+```bash
+python -c "from utils.sample_data import load_sample_data; load_sample_data()"
+```
+
 ## 🏃‍♂️ Running the Application
 
 ### **Development Mode:**
@@ -92,6 +101,13 @@ python app.py
 ```
 
 The application will be available at: `http://localhost:8080`
+
+### **Production Mode:**
+```bash
+# Use a production WSGI server
+pip install gunicorn
+gunicorn -w 4 -b 0.0.0.0:8080 app:app
+```
 
 ## 🌐 Application Structure
 
@@ -107,6 +123,13 @@ The application will be available at: `http://localhost:8080`
 - **AI Research:** `http://localhost:8080/admin/ai-research`
 - **Analytics:** `http://localhost:8080/admin/analytics`
 - **Manage Ideas:** `http://localhost:8080/admin/ideas`
+
+### **API Endpoints:**
+- **Health Check:** `GET /api/health`
+- **Ideas API:** `GET/POST /api/ideas`
+- **Search API:** `POST /api/ideas/search`
+- **Contributors API:** `GET/POST /api/contributors`
+- **AI Research:** `POST /api/mcp/research`
 
 ## 🤖 AI Research Tools
 
@@ -146,6 +169,10 @@ curl -X POST http://localhost:8080/api/ideas/search \
 
 ### **Build Container:**
 ```bash
+# Build using provided script
+./build-and-push-enhanced.sh
+
+# Or manually
 docker build -t idea-hub:latest .
 ```
 
@@ -189,6 +216,18 @@ volumes:
   postgres_data:
 ```
 
+## ☸️ Kubernetes Deployment
+
+Deploy to Kubernetes using the provided manifests:
+
+```bash
+# Apply all manifests
+kubectl apply -f k8s/
+
+# Check deployment status
+kubectl get pods | grep idea-hub
+```
+
 ## 🔧 Configuration Options
 
 ### **Search Configuration:**
@@ -205,7 +244,25 @@ MCP_SERVER_URL = "http://localhost:8000"  # Optional MCP server
 GEMINI_MODEL = "gemini-1.5-pro"
 ```
 
+### **Database Configuration:**
+```python
+VECTOR_DIMENSIONS = 384  # HuggingFace model dimensions
+CONNECTION_POOL_SIZE = 10
+```
+
 ## 🧪 Testing
+
+### **Run Tests:**
+```bash
+# Unit tests
+python -m pytest tests/
+
+# API tests
+python -m pytest tests/test_api.py
+
+# Integration tests
+python -m pytest tests/test_integration.py
+```
 
 ### **Test API Endpoints:**
 ```bash
@@ -242,10 +299,33 @@ psql -h localhost -U your_user -d idea_hub_db
 CREATE EXTENSION IF NOT EXISTS vector;
 ```
 
-3. **Port Already in Use:**
+3. **API Key Issues:**
+```bash
+# Test Gemini API key
+curl -H "Authorization: Bearer $GEMINI_API_KEY" \
+  https://generativelanguage.googleapis.com/v1/models
+```
+
+4. **Port Already in Use:**
 ```bash
 # Find process using port 8080
 lsof -ti:8080 | xargs kill -9
+
+# Or change port in app.py
+app.run(host='0.0.0.0', port=8081)
+```
+
+### **Debugging:**
+```bash
+# Enable debug mode
+export FLASK_ENV=development
+export DEBUG=True
+
+# Check logs
+tail -f logs/application.log
+
+# Verbose logging
+export LOG_LEVEL=DEBUG
 ```
 
 ## 📊 Monitoring & Analytics
@@ -263,21 +343,34 @@ curl http://localhost:8080/api/dashboard/kpis
 
 # Trend analysis
 curl http://localhost:8080/api/dashboard/trends
+
+# AI insights
+curl http://localhost:8080/api/dashboard/insights
 ```
 
 ## 🚀 Advanced Features
 
 ### **MCP Server Integration:**
-For enhanced AI capabilities, you can run the separate MCP server:
+If you want to run the separate MCP server for enhanced AI capabilities:
 
 1. **Clone MCP Server:**
 ```bash
 git clone https://github.com/nitish1888/idea-hub-mcp-server.git
+cd idea-hub-mcp-server
 ```
 
 2. **Configure MCP URL:**
 ```python
 MCP_SERVER_URL = "http://localhost:8000"
+```
+
+### **Custom AI Models:**
+```python
+# Use different embedding models
+EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"
+
+# Configure custom Gemini models
+GEMINI_MODEL = "gemini-1.5-pro"
 ```
 
 ## 🔐 Security
@@ -287,6 +380,18 @@ MCP_SERVER_URL = "http://localhost:8000"
 - Enable HTTPS with reverse proxy
 - Set up proper database permissions
 - Use secure session keys
+
+```python
+# Production settings
+SECRET_KEY = os.environ.get('SECRET_KEY')
+SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL')
+SSL_REDIRECT = True
+```
+
+## 📚 API Documentation
+
+Full API documentation is available when running the application at:
+`http://localhost:8080/api/docs`
 
 ## 🤝 Contributing
 
@@ -303,7 +408,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 ## 🆘 Support
 
 - **Issues:** https://github.com/nitish1888/idea_hub/issues
-- **Documentation:** See `/docs` directory for detailed guides
+- **Documentation:** See `/docs` directory
+- **Examples:** Check `/examples` directory
 
 ---
 

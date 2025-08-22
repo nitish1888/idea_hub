@@ -1,4 +1,4 @@
-# Red Hat Idea Hub - Production Deployment Guide
+# Idea Hub - Production Deployment Guide
 
 ## 🚀 **Production-Ready Application**
 
@@ -60,7 +60,7 @@ oc new-app quay.io/rhn-support-nitsingh/idea-hub-backend:latest
 - `ALLOWED_ORIGINS` - CORS origins
 
 ### 🎯 **Production URLs**
-- **Application**: https://idea-hub-backend-trend-analysis-using-ai--runtime-int.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com
+- **Application**: https://idea-hub-backend-trend-analysis-using-ai--runtime-int.apps.int.spoke.preprod.us-east-1.aws.your-domain.com
 - **Health Check**: `/api/health`
 - **Submit Ideas**: `/submit`
 - **Browse Ideas**: `/browse`
@@ -88,6 +88,6 @@ oc new-app quay.io/rhn-support-nitsingh/idea-hub-backend:latest
 
 ---
 
-**Built by**: Red Hat Innovation Team  
+**Built by**: Company Innovation Team  
 **Last Updated**: August 2025  
 **Version**: 1.0.0

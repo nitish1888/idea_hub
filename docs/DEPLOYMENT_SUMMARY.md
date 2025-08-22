@@ -18,12 +18,12 @@ This deployment includes your enhanced Idea Hub application with full MCP (Model
 ### Main Application (Enhanced Idea Hub)
 - **Name**: `idea-hub-updated`
 - **Image**: `quay.io/rhn-support-nitsingh/idea-hub-updated:latest`
-- **URL**: `https://idea-hub-updated-trend-analysis-using-ai--runtime-int.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com`
+- **URL**: `https://idea-hub-updated-trend-analysis-using-ai--runtime-int.apps.int.spoke.preprod.us-east-1.aws.your-domain.com`
 
 ### MCP Server (Already Deployed)
 - **Name**: `idea-hub-mcp-server`
 - **Image**: `quay.io/rhn-support-nitsingh/idea-hub-mcp-server:latest`
-- **URL**: `https://idea-hub-mcp-server-trend-analysis-using-ai--runtime-int.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com`
+- **URL**: `https://idea-hub-mcp-server-trend-analysis-using-ai--runtime-int.apps.int.spoke.preprod.us-east-1.aws.your-domain.com`
 
 ## Key Features
 - ✅ **MCP Integration**: Main app communicates with MCP server for AI operations

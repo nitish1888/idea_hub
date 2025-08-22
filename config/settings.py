@@ -1,8 +1,8 @@
 """
-Red Hat Idea Hub - Configuration Settings
+Idea Hub - Configuration Settings
 =========================================
 
-This module contains all configuration settings for the Red Hat Idea Hub application.
+This module contains all configuration settings for the Idea Hub application.
 Based on patterns from idea_borad.ipynb notebook with environment variable support.
 
 Configuration Categories:
@@ -43,7 +43,7 @@ db_config = Config.DB_CONFIG
 # Access AI configuration  
 api_key = Config.GEMINI_API_KEY
 
-Author: Red Hat Innovation Team
+Author: Innovation Team
 Last Updated: 2025
 """
 
@@ -60,7 +60,7 @@ load_dotenv()
 
 class Config:
     """
-    Main configuration class for Red Hat Idea Hub
+    Main configuration class for Idea Hub
     
     This class centralizes all configuration settings and provides sensible
     defaults while allowing environment variable overrides for flexibility.
@@ -116,7 +116,7 @@ class Config:
     # MCP server provides AI tools and capabilities as a separate microservice
     MCP_ENABLED = True                                         # Enable MCP integration (static)
     MCP_SERVER_URL = os.getenv("MCP_SERVER_URL", 
-        "https://idea-hub-mcp-server-trend-analysis-using-ai--runtime-int.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com"
+        "https://idea-hub-mcp-server-trend-analysis-using-ai--runtime-int.apps.int.spoke.preprod.us-east-1.aws.your-domain.com"
     )                                                          # MCP server endpoint
     MCP_API_TIMEOUT = 30.0                                     # Request timeout in seconds
     MCP_FALLBACK_ENABLED = True                                # Use local services when MCP unavailable
@@ -190,7 +190,7 @@ def print_config_summary():
     Sensitive information (passwords, API keys) are masked for security.
     """
     
-    print("📋 Red Hat Idea Hub Configuration Summary")
+    print("📋 Idea Hub Configuration Summary")
     print("=" * 50)
     
     # Database configuration (mask password)

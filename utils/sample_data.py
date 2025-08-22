@@ -1,5 +1,5 @@
 """
-Sample data for Red Hat Idea Hub
+Sample data for Idea Hub
 Based on the data from idea_borad.ipynb notebook
 """
 

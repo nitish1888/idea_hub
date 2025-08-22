@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
-{% block title %}Submit Idea - Red Hat Idea Hub{% endblock %}
+{% block title %}Submit Idea - Idea Hub{% endblock %}
 
 {% block content %}
 <div class="page-header">
     <h2 class="page-title">Submit Innovation Idea</h2>
-    <p class="page-subtitle">Share your innovative concepts with the Red Hat community</p>
+    <p class="page-subtitle">Share your innovative concepts with the Company community</p>
 </div>
 
 <!-- Submit Form -->
@@ -91,7 +91,7 @@
         <!-- AI Research Helper -->
         <div class="form-group" style="margin-top: 2rem; padding: 1.5rem; background: var(--blue-50); border: 1px solid var(--blue-200); border-radius: 1rem;">
             <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                <i class="fas fa-robot" style="color: var(--red-hat-red); font-size: 1.2rem;"></i>
+                <i class="fas fa-robot" style="color: var(--primary-red); font-size: 1.2rem;"></i>
                 <div>
                     <h4 style="margin: 0; color: var(--gray-900);">AI Research Assistant</h4>
                     <p style="margin: 0; color: var(--gray-600); font-size: 0.9rem;">Research similar ideas and get AI insights before submitting</p>
@@ -259,7 +259,7 @@ function validateForm() {
     requiredFields.forEach(fieldId => {
         const field = document.getElementById(fieldId);
         if (!field.value.trim()) {
-            field.style.borderColor = 'var(--red-hat-red)';
+            field.style.borderColor = 'var(--primary-red)';
             isValid = false;
         } else {
             field.style.borderColor = 'var(--gray-300)';

@@ -680,9 +680,9 @@ class AgentOrchestrator:
 ---
 
 **Contact Information:**
-- **Lead:** Nitish Singh ([Rover Profile](https://rover.redhat.com/people/profile/nitsingh))
+- **Lead:** Nitish Singh ([Rover Profile](https://rover.company.com/people/profile/nitsingh))
 - **Contributors:** Rishika Kumar, Shubham Chilhate
-- **Live Demo:** https://idea-hub-repo.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com
+- **Live Demo:** https://idea-hub-repo.apps.int.spoke.preprod.us-east-1.aws.your-domain.com
 - **Source Code:** Available on request
 
 ---

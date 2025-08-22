@@ -1,5 +1,5 @@
 """
-Services module for Red Hat Idea Hub
+Services module for Idea Hub
 """
 
 from .ai_service import GeminiService

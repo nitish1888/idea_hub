@@ -1,5 +1,5 @@
 """
-Red Hat Idea Hub - Idea Data Model
+Idea Hub - Idea Data Model
 ==================================
 
 This module contains the IdeaModel class which handles all database operations
@@ -51,7 +51,7 @@ ideas = IdeaModel.get_all_ideas()
 # Update PDF metadata
 IdeaModel.update_pdf_info(idea_id, pdf_metadata)
 
-Author: Red Hat Innovation Team
+Author: Innovation Team
 Last Updated: 2025
 """
 

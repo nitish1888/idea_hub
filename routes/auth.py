@@ -1,5 +1,5 @@
 """
-Red Hat Idea Hub - Authentication Routes
+Idea Hub - Authentication Routes
 ========================================
 
 Authentication routes for the dual-view architecture.
@@ -147,7 +147,7 @@ def admin_info():
         # Add demo credentials for development
         info["demo_credentials"] = {
             "admin": "hello",
-            "rhadmin": "redhat123"
+            "rhadmin": "company123"
         }
         
         return jsonify(info)

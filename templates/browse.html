@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Browse Ideas - Red Hat Idea Hub{% endblock %}
+{% block title %}Browse Ideas - Idea Hub{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -307,7 +307,7 @@ function displayIdeas() {
             </p>
             
             ${idea.abstract ? `
-                <div style="background: var(--gray-50); padding: 1rem; border-radius: 0.5rem; border-left: 4px solid var(--red-hat-red);">
+                <div style="background: var(--gray-50); padding: 1rem; border-radius: 0.5rem; border-left: 4px solid var(--primary-red);">
                     <strong style="color: var(--gray-700); font-size: 0.875rem;">Executive Summary:</strong>
                     <p style="margin: 0.5rem 0 0 0; color: var(--gray-600); font-size: 0.875rem;">
                         ${idea.abstract.length > 100 ? idea.abstract.substring(0, 100) + '...' : idea.abstract}
@@ -321,7 +321,7 @@ function displayIdeas() {
                         onclick="event.stopPropagation(); getAIInsights('${idea.title.replace(/'/g, "\\'")}', ${idea.id});">
                     <i class="fas fa-robot"></i> AI Insights
                 </button>
-                <span style="color: var(--red-hat-red); font-weight: 600; font-size: 0.875rem;">
+                <span style="color: var(--primary-red); font-weight: 600; font-size: 0.875rem;">
                     Click to view details <i class="fas fa-arrow-right"></i>
                 </span>
             </div>
@@ -438,7 +438,7 @@ function showIdeaDetails(ideaId) {
             ${idea.abstract ? `
                 <div style="margin-bottom: 2rem;">
                     <h4 style="color: var(--gray-900); margin-bottom: 1rem;">Executive Summary</h4>
-                    <div style="background: var(--gray-50); padding: 1.5rem; border-radius: 0.5rem; border-left: 4px solid var(--red-hat-red);">
+                    <div style="background: var(--gray-50); padding: 1.5rem; border-radius: 0.5rem; border-left: 4px solid var(--primary-red);">
                         <p style="color: var(--gray-700); line-height: 1.6; margin: 0; white-space: pre-wrap;">${idea.abstract}</p>
                     </div>
                 </div>
@@ -548,14 +548,14 @@ style.textContent = `
     }
     
     .pagination-btn.active {
-        background: var(--red-hat-red);
-        border-color: var(--red-hat-red);
+        background: var(--primary-red);
+        border-color: var(--primary-red);
         color: white;
     }
     
     .pagination-btn.active:hover {
-        background: var(--red-hat-red-dark);
-        border-color: var(--red-hat-red-dark);
+        background: var(--primary-red-dark);
+        border-color: var(--primary-red-dark);
         color: white;
     }
 `;

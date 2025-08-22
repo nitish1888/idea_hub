@@ -1,5 +1,5 @@
 """
-Red Hat Idea Hub - MCP Client Service
+Idea Hub - MCP Client Service
 ====================================
 
 This module provides integration with the deployed MCP server for:
@@ -91,7 +91,7 @@ class MCPClient:
         
         if not mcp_url:
             # Use the deployed OpenShift route
-            mcp_url = "https://idea-hub-mcp-server-trend-analysis-using-ai--runtime-int.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com"
+            mcp_url = "https://idea-hub-mcp-server-trend-analysis-using-ai--runtime-int.apps.int.spoke.preprod.us-east-1.aws.your-domain.com"
         
         return mcp_url.rstrip('/')
     

@@ -33,7 +33,7 @@ class AISummaryService:
             return self._create_basic_summary(idea_data, max_words)
         
         prompt = f"""
-        Create a clear, concise summary of this Red Hat idea in exactly {max_words} words or less.
+        Create a clear, concise summary of this Company idea in exactly {max_words} words or less.
         
         Title: {idea_data.get('title', '')}
         Description: {idea_data.get('description', '')}
@@ -111,7 +111,7 @@ class AISummaryService:
             return f"Found {similarity_score:.1f}% similarity with existing idea."
         
         prompt = f"""
-        Explain in 2-3 sentences why these two Red Hat ideas are similar:
+        Explain in 2-3 sentences why these two Company ideas are similar:
         
         New Idea: "{new_idea.get('title', '')}" - {new_idea.get('description', '')}
         Existing Idea: "{similar_idea.get('title', '')}" - {similar_idea.get('description', '')}

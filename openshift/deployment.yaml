@@ -10,7 +10,7 @@ metadata:
     app.kubernetes.io/name: idea-hub-updated
     app.kubernetes.io/part-of: idea-hub-platform
     app.openshift.io/runtime: python
-    paas.redhat.com/appcode: TAAI-001
+    paas.company.com/appcode: TAAI-001
   name: idea-hub-updated
   namespace: trend-analysis-using-ai--runtime-int
 spec:
@@ -66,7 +66,7 @@ spec:
               key: GOOGLE_API_KEY
         # MCP Server Configuration (Internal OpenShift Service)
         - name: MCP_SERVER_URL
-          value: "https://idea-hub-mcp-server-trend-analysis-using-ai--runtime-int.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com"
+          value: "https://idea-hub-mcp-server-trend-analysis-using-ai--runtime-int.apps.int.spoke.preprod.us-east-1.aws.your-domain.com"
         # Application Configuration
         - name: FLASK_ENV
           value: "production"
@@ -123,7 +123,7 @@ kind: Service
 metadata:
   labels:
     app: idea-hub-updated
-    paas.redhat.com/appcode: TAAI-001
+    paas.company.com/appcode: TAAI-001
   name: idea-hub-updated
   namespace: trend-analysis-using-ai--runtime-int
 spec:

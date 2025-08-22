@@ -1,5 +1,5 @@
 """
-Red Hat Idea Hub - Health Check API Routes
+Idea Hub - Health Check API Routes
 ==========================================
 
 This module contains Flask Blueprint routes for monitoring application health
@@ -51,7 +51,7 @@ Status endpoint returns:
     "database_info": { ... }
 }
 
-Author: Red Hat Innovation Team
+Author: Innovation Team
 Last Updated: 2025
 """
 

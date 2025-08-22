@@ -1,5 +1,5 @@
 """
-Red Hat Idea Hub - User Routes
+Idea Hub - User Routes
 ==============================
 
 Public user routes for the dual-view architecture.
@@ -93,7 +93,7 @@ def submit_idea():
             
             return jsonify({
                 "status": "success",
-                "message": "Your idea has been submitted successfully! Thank you for contributing to Red Hat innovation.",
+                "message": "Your idea has been submitted successfully! Thank you for contributing to Company innovation.",
                 "idea_id": result.get('idea_id'),
                 "next_steps": [
                     "Your idea will be reviewed by our innovation team",
@@ -176,7 +176,7 @@ def join_as_contributor():
         # Optional fields with user-friendly defaults
         experience = data.get('experience', 'Mid-level')
         hours_per_week = data.get('hours_per_week', 5)  # Default 5 hours
-        motivation = data.get('motivation', 'Contributing to Red Hat innovation')
+        motivation = data.get('motivation', 'Contributing to Company innovation')
         
         contributor_data = {
             'name': name,
@@ -192,7 +192,7 @@ def join_as_contributor():
         if result.get('status') == 'success':
             return jsonify({
                 "status": "success",
-                "message": f"Welcome aboard, {name}! You're now part of the Red Hat innovation community.",
+                "message": f"Welcome aboard, {name}! You're now part of the Company innovation community.",
                 "contributor_id": result.get('contributor_id'),
                 "next_steps": [
                     "Browse innovative ideas that match your skills",
@@ -264,7 +264,7 @@ def user_system_status():
     try:
         return jsonify({
             "status": "online",
-            "message": "Red Hat Idea Hub is ready for your innovations!",
+            "message": "Idea Hub is ready for your innovations!",
             "services": {
                 "idea_submission": "available",
                 "contributor_search": "available", 

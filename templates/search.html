@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Search Ideas - Red Hat Idea Hub{% endblock %}
+{% block title %}Search Ideas - Idea Hub{% endblock %}
 
 {% block content %}
 <div class="page-header">
@@ -242,7 +242,7 @@ function displayResults(data, query) {
                         </div>
                     </div>
                     <div style="text-align: right;">
-                        <div style="background: var(--red-hat-red); color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600;">
+                        <div style="background: var(--primary-red); color: white; padding: 0.5rem 1rem; border-radius: 0.5rem; font-weight: 600;">
                             ${Math.round(similarity)}% Match
                         </div>
                     </div>
@@ -253,7 +253,7 @@ function displayResults(data, query) {
                 </p>
                 
                 ${idea?.abstract ? `
-                    <div style="background: white; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid var(--red-hat-red); margin-bottom: 1rem;">
+                    <div style="background: white; padding: 1rem; border-radius: 0.5rem; border-left: 4px solid var(--primary-red); margin-bottom: 1rem;">
                         <strong style="color: var(--gray-700); font-size: 0.875rem;">Executive Summary:</strong>
                         <p style="margin: 0.5rem 0 0 0; color: var(--gray-600); font-size: 0.875rem;">${idea.abstract}</p>
                     </div>
@@ -353,7 +353,7 @@ style.textContent = `
     }
     
     .example-search i {
-        color: var(--red-hat-red);
+        color: var(--primary-red);
     }
 `;
 document.head.appendChild(style);

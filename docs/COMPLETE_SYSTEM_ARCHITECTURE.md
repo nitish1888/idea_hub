@@ -45,7 +45,7 @@ async def execute_autonomous_research(self, research_query: str):
     chat = self.gemini_model.start_chat()
     
     system_prompt = f"""
-    You are an intelligent Red Hat Innovation Research Agent with access to specialized tools.
+    You are an intelligent Company Innovation Research Agent with access to specialized tools.
     
     Your task: {research_query}
     

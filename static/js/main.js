@@ -1,4 +1,4 @@
-// Red Hat Idea Hub - Main JavaScript File
+// Company Idea Hub - Main JavaScript File
 // =====================================
 
 // Global configuration
@@ -461,7 +461,7 @@ function initializeErrorHandling() {
 // ===================
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🚀 Red Hat Idea Hub - Initializing...');
+    console.log('🚀 Company Idea Hub - Initializing...');
     
     // Initialize all features
     initializeTheme();
@@ -475,7 +475,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Set active navigation
     setActiveNavigation(window.location.pathname);
     
-    console.log('✅ Red Hat Idea Hub - Ready!');
+    console.log('✅ Company Idea Hub - Ready!');
 });
 
 // Export functions for use in other scripts

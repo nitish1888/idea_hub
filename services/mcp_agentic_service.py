@@ -1,5 +1,5 @@
 """
-Red Hat Idea Hub - MCP Agentic AI Service
+Idea Hub - MCP Agentic AI Service
 ==========================================
 
 This implements agentic AI using Model Context Protocol (MCP) with Gemini.
@@ -40,11 +40,11 @@ from models.contributor import ContributorModel
 from config.settings import Config
 
 #=============================================================================
-# MCP TOOLS FOR RED HAT IDEA HUB
+# MCP TOOLS FOR IDEA HUB
 #=============================================================================
 
 class IdeaHubMCPTools:
-    """MCP Tools for Red Hat Idea Hub operations"""
+    """MCP Tools for Idea Hub operations"""
     
     @staticmethod
     def get_tool_definitions() -> List[FunctionDeclaration]:
@@ -52,7 +52,7 @@ class IdeaHubMCPTools:
         return [
             FunctionDeclaration(
                 name="search_similar_ideas",
-                description="Search for similar ideas in the Red Hat Idea Hub database using semantic similarity",
+                description="Search for similar ideas in the Idea Hub database using semantic similarity",
                 parameters={
                     "type": "object",
                     "properties": {
@@ -164,7 +164,7 @@ class IdeaHubMCPTools:
         ]
 
 class MCPAgenticService:
-    """Main MCP-based Agentic AI Service for Red Hat Idea Hub"""
+    """Main MCP-based Agentic AI Service for Idea Hub"""
     
     def __init__(self):
         self.gemini_model = None
@@ -229,7 +229,7 @@ class MCPAgenticService:
             chat = self.gemini_model.start_chat()
             
             # Enhanced prompt for tool calling
-            enhanced_prompt = f"""You are a Red Hat innovation research agent with access to specialized tools. Please research: {research_query}
+            enhanced_prompt = f"""You are a Company innovation research agent with access to specialized tools. Please research: {research_query}
 
 Available tools can help you:
 - search_innovation_trends: Search for innovation trends and ideas

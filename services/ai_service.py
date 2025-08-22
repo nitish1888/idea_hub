@@ -1,5 +1,5 @@
 """
-Red Hat Idea Hub - Google Gemini AI Service
+Idea Hub - Google Gemini AI Service
 ===========================================
 
 This module provides integration with Google's Gemini AI service for:
@@ -51,7 +51,7 @@ Error Handling:
 - Comprehensive logging for debugging and monitoring
 - Automatic retry logic for transient failures
 
-Author: Red Hat Innovation Team
+Author: Innovation Team
 Last Updated: 2025
 """
 
@@ -69,7 +69,7 @@ class GeminiService:
     Google Gemini AI service for text generation and embedding operations
     
     This class encapsulates all interactions with Google's Gemini AI service,
-    providing a clean interface for the Red Hat Idea Hub application.
+    providing a clean interface for the Idea Hub application.
     
     The service handles:
     - Text embedding generation for semantic similarity calculations
@@ -204,7 +204,7 @@ class GeminiService:
     def generate_insights(self, data_summary):
         """Generate AI insights about idea hub data"""
         prompt = f"""
-        Analyze this Red Hat Idea Hub data and provide 3-4 key insights:
+        Analyze this Idea Hub data and provide 3-4 key insights:
         
         Total Ideas: {data_summary.get('total_ideas', 0)}
         Categories: {data_summary.get('categories', {})}

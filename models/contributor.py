@@ -1,5 +1,5 @@
 """
-Red Hat Idea Hub - Contributor Data Model
+Idea Hub - Contributor Data Model
 =========================================
 
 This module contains the ContributorModel class which handles all database operations
@@ -42,7 +42,7 @@ new_contributor = ContributorModel.create_contributor(contributor_data)
 # Get all contributors
 contributors = ContributorModel.get_all_contributors()
 
-Author: Red Hat Innovation Team
+Author: Innovation Team
 Last Updated: 2025
 """
 

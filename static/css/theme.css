@@ -1,5 +1,5 @@
-/* Red Hat Idea Hub - Modern Design System
-   Based on Red Hat brand guidelines and modern web standards */
+/* Idea Hub - Modern Design System
+   Based on modern web standards */
 
 /* CSS Reset and Base Styles */
 *, *::before, *::after {
@@ -7,12 +7,12 @@
 }
 
 :root {
-    /* Red Hat Brand Colors */
-    --red-hat-red: #ee0000;
-    --red-hat-red-dark: #cc0000;
-    --red-hat-red-darker: #a30000;
-    --red-hat-red-light: #ff3333;
-    --red-hat-red-lighter: #ff6666;
+    /* Brand Colors */
+    --primary-red: #ee0000;
+    --primary-red-dark: #cc0000;
+    --primary-red-darker: #a30000;
+    --primary-red-light: #ff3333;
+    --primary-red-lighter: #ff6666;
     
     /* Extended Red Palette */
     --red-100: #fee2e2;
@@ -115,13 +115,13 @@ p {
 }
 
 a {
-    color: var(--red-hat-red);
+    color: var(--primary-red);
     text-decoration: none;
     transition: var(--transition-colors);
 }
 
 a:hover {
-    color: var(--red-hat-red-dark);
+    color: var(--primary-red-dark);
     text-decoration: underline;
 }
 
@@ -188,8 +188,8 @@ a:hover {
 
 .nav-button {
     background: white;
-    color: var(--red-hat-red);
-    border: 2px solid var(--red-hat-red);
+    color: var(--primary-red);
+    border: 2px solid var(--primary-red);
     padding: var(--space-4) var(--space-8);
     border-radius: var(--radius-lg);
     font-weight: 600;
@@ -204,7 +204,7 @@ a:hover {
 }
 
 .nav-button:hover {
-    background: var(--red-hat-red);
+    background: var(--primary-red);
     color: white;
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
@@ -212,7 +212,7 @@ a:hover {
 }
 
 .nav-button.active {
-    background: var(--red-hat-red);
+    background: var(--primary-red);
     color: white;
     box-shadow: var(--shadow-red);
 }
@@ -292,12 +292,12 @@ a:hover {
 }
 
 .btn-primary {
-    background: var(--red-hat-red);
+    background: var(--primary-red);
     color: white;
 }
 
 .btn-primary:hover {
-    background: var(--red-hat-red-dark);
+    background: var(--primary-red-dark);
     transform: translateY(-1px);
     box-shadow: var(--shadow-lg);
     text-decoration: none;
@@ -306,12 +306,12 @@ a:hover {
 
 .btn-secondary {
     background: white;
-    color: var(--red-hat-red);
-    border: 2px solid var(--red-hat-red);
+    color: var(--primary-red);
+    border: 2px solid var(--primary-red);
 }
 
 .btn-secondary:hover {
-    background: var(--red-hat-red);
+    background: var(--primary-red);
     color: white;
     text-decoration: none;
 }
@@ -355,7 +355,7 @@ a:hover {
 .form-select:focus,
 .form-textarea:focus {
     outline: none;
-    border-color: var(--red-hat-red);
+    border-color: var(--primary-red);
     box-shadow: 0 0 0 3px rgba(238, 0, 0, 0.1);
 }
 
@@ -395,7 +395,7 @@ a:hover {
 .metric-value {
     font-size: 2.5rem;
     font-weight: 800;
-    color: var(--red-hat-red);
+    color: var(--primary-red);
     margin-bottom: var(--space-2);
 }
 
@@ -452,7 +452,7 @@ a:hover {
     width: 20px;
     height: 20px;
     border: 2px solid var(--gray-300);
-    border-top: 2px solid var(--red-hat-red);
+    border-top: 2px solid var(--primary-red);
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
@@ -531,12 +531,12 @@ a:hover {
 .w-full { width: 100%; }
 .h-full { height: 100%; }
 
-.text-red { color: var(--red-hat-red); }
+.text-red { color: var(--primary-red); }
 .text-gray-600 { color: var(--gray-600); }
 .text-gray-700 { color: var(--gray-700); }
 .text-gray-900 { color: var(--gray-900); }
 
-.bg-red { background-color: var(--red-hat-red); }
+.bg-red { background-color: var(--primary-red); }
 .bg-white { background-color: white; }
 .bg-gray-50 { background-color: var(--gray-50); }
 
@@ -553,7 +553,7 @@ a:hover {
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background: var(--red-hat-red);
+    background: var(--primary-red);
     color: white;
     border: none;
     box-shadow: var(--shadow-lg);
@@ -566,7 +566,7 @@ a:hover {
 }
 
 .ai-toggle-btn:hover {
-    background: var(--red-hat-red-dark);
+    background: var(--primary-red-dark);
     transform: scale(1.1);
     box-shadow: var(--shadow-xl);
 }
@@ -587,7 +587,7 @@ a:hover {
 }
 
 .ai-chat-header {
-    background: var(--red-hat-red);
+    background: var(--primary-red);
     color: white;
     padding: 1rem;
     display: flex;
@@ -647,8 +647,8 @@ a:hover {
 
 .ai-quick-btn:hover {
     background: var(--red-100);
-    border-color: var(--red-hat-red);
-    color: var(--red-hat-red-dark);
+    border-color: var(--primary-red);
+    color: var(--primary-red-dark);
 }
 
 .ai-chat-footer {
@@ -674,13 +674,13 @@ a:hover {
 
 .ai-input:focus {
     outline: none;
-    border-color: var(--red-hat-red);
+    border-color: var(--primary-red);
     box-shadow: 0 0 0 2px rgba(238, 0, 0, 0.1);
 }
 
 .ai-send-btn {
     padding: 0.75rem;
-    background: var(--red-hat-red);
+    background: var(--primary-red);
     color: white;
     border: none;
     border-radius: var(--radius-lg);
@@ -693,7 +693,7 @@ a:hover {
 }
 
 .ai-send-btn:hover {
-    background: var(--red-hat-red-dark);
+    background: var(--primary-red-dark);
 }
 
 .ai-send-btn:disabled {
@@ -708,7 +708,7 @@ a:hover {
 }
 
 .ai-footer-text a {
-    color: var(--red-hat-red);
+    color: var(--primary-red);
     text-decoration: none;
     font-weight: 500;
 }
