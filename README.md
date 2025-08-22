@@ -1,4 +1,4 @@
-# Red Hat Idea Hub - Innovation Management Platform
+# Idea Hub - Innovation Management Platform
 
 A comprehensive AI-powered innovation idea management system with modern web interface and intelligent duplicate detection. Built with Flask backend, Streamlit frontend, PostgreSQL + pgvector, and Google Gemini AI.
 
