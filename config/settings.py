@@ -74,13 +74,13 @@ class Config:
     #=========================================================================
     
     # PostgreSQL database connection settings
-    # Static configuration for OpenShift deployment
+    # Updated to use OpenShift secret environment variables
     DB_CONFIG = {
-        "dbname": os.getenv("PG_DB"),                          # Database name (from secret)
-        "user": os.getenv("PG_USER"),                          # Database user (from secret)
-        "password": os.getenv("PG_PASS"),                      # Database password (from secret)
-        "host": os.getenv("PG_HOST"),                          # Database host (from secret)
-        "port": os.getenv("PG_PORT")                           # Database port (from secret)
+        "dbname": os.getenv("DATABASE_NAME") or os.getenv("PG_DB"),                    # Database name (from secret)
+        "user": os.getenv("DATABASE_USER") or os.getenv("PG_USER"),                    # Database user (from secret)
+        "password": os.getenv("DATABASE_PASSWORD") or os.getenv("PG_PASS"),            # Database password (from secret)
+        "host": os.getenv("DATABASE_HOST") or os.getenv("PG_HOST"),                    # Database host (from secret)
+        "port": os.getenv("DATABASE_PORT") or os.getenv("PG_PORT")                     # Database port (from secret)
     }
     
     # Complete PostgreSQL connection string for database operations
@@ -101,7 +101,7 @@ class Config:
     #=========================================================================
     
     # Google Gemini AI configuration for text generation and analysis
-    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")              # API key (from secret)
+    GEMINI_API_KEY = os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")    # API key (from secret)
     GEMINI_MODEL = "gemini-2.5-flash"                         # Model version (static)
     EMBEDDING_MODEL = "sentence-transformers/all-MiniLM-L6-v2"  # Smaller, reliable embedding model (384 dim)
     
@@ -109,12 +109,17 @@ class Config:
     # Get your API key from: https://makersuite.google.com/app/apikey
     
     #=========================================================================
-    # MCP AGENTIC AI CONFIGURATION
+    # MCP SERVER CONFIGURATION
     #=========================================================================
     
-    # MCP (Model Context Protocol) configuration for tool calling with Gemini (static)
-    # MCP enables Gemini to use tools and interact with external systems autonomously
-    MCP_ENABLED = True                                         # Always enabled (static)
+    # MCP (Model Context Protocol) server configuration for AI operations
+    # MCP server provides AI tools and capabilities as a separate microservice
+    MCP_ENABLED = True                                         # Enable MCP integration (static)
+    MCP_SERVER_URL = os.getenv("MCP_SERVER_URL", 
+        "https://idea-hub-mcp-server-trend-analysis-using-ai--runtime-int.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com"
+    )                                                          # MCP server endpoint
+    MCP_API_TIMEOUT = 30.0                                     # Request timeout in seconds
+    MCP_FALLBACK_ENABLED = True                                # Use local services when MCP unavailable
     
     #=========================================================================
     # FLASK APPLICATION CONFIGURATION

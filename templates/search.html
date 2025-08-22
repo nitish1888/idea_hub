@@ -219,8 +219,8 @@ function displayResults(data, query) {
             const contributor = idea?.contributor || 'Unknown';
             const category = idea?.category || 'General';
             const impact = idea?.impact || 'Medium';
-            const similarity = idea?.similarity || 0;
-            const content_preview = idea?.content_preview || '';
+            const similarity = (idea?.similarity_score || 0) * 100; // Convert from 0-1 scale to percentage
+            const content_preview = idea?.description || idea?.content_preview || '';
             
             return `
             <div class="result-card" style="background: ${index % 2 === 0 ? 'var(--gray-50)' : 'white'}; padding: 1.5rem; border-radius: 0.75rem; margin-bottom: 1rem; border: 1px solid var(--gray-200);">

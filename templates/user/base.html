@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Red Hat Idea Hub{% endblock %}</title>
+    <title>{% block title %}Idea Hub{% endblock %}</title>
     
     <!-- Red Hat Branding CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/red-hat-theme.css') }}">
@@ -62,7 +62,7 @@
         <div class="container">
             <a class="navbar-brand text-white fw-bold" href="{{ url_for('user.user_landing') }}">
                 <i class="fas fa-lightbulb me-2"></i>
-                Red Hat Idea Hub
+                Idea Hub
             </a>
             
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -99,6 +99,12 @@
                 
                 <ul class="navbar-nav">
                     <li class="nav-item">
+                        <a class="nav-link text-white" href="#" data-bs-toggle="modal" data-bs-target="#teamInfoModal">
+                            <i class="fas fa-info-circle me-1"></i>
+                            About
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link text-white-50" href="/admin/login">
                             <i class="fas fa-cog me-1"></i>
                             Admin Login
@@ -133,7 +139,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-6">
-                    <h5 class="text-white">Red Hat Idea Hub</h5>
+                    <h5 class="text-white">Idea Hub</h5>
                     <p class="text-white-50">
                         Empowering innovation through collaboration.
                         A community platform for sharing and developing ideas.
@@ -145,12 +151,87 @@
                         Innovation Community Platform
                     </p>
                     <p class="text-white-50 mb-0">
-                        <small>Powered by Red Hat Technology</small>
+                        <small>Powered by Modern Technology</small>
                     </p>
                 </div>
             </div>
         </div>
     </footer>
+
+    <!-- Team Info Modal -->
+    <div class="modal fade" id="teamInfoModal" tabindex="-1" aria-labelledby="teamInfoModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header text-white" style="background: var(--red-hat-red);">
+                    <h5 class="modal-title" id="teamInfoModalLabel">
+                        <i class="fas fa-info-circle me-2"></i>
+                        About Idea Hub
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body py-3">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-lightbulb" style="font-size: 2.5rem; color: var(--red-hat-red);"></i>
+                        <h5 class="mt-2 mb-1" style="color: var(--red-hat-red);">Innovation Hub Platform</h5>
+                        <p class="text-muted small mb-3">Empowering collaboration and idea sharing</p>
+                    </div>
+                    
+                    <!-- Designer Section -->
+                    <div class="mb-3">
+                        <h6 class="mb-2" style="color: var(--red-hat-red-dark);">
+                            <i class="fas fa-user-tie me-1"></i>
+                            Designed By
+                        </h6>
+                        <div class="ps-3">
+                            <a href="https://rover.redhat.com/people/profile/nitsingh" target="_blank" 
+                               class="text-decoration-none fw-bold text-dark" 
+                               style="transition: color 0.3s ease;" 
+                               onmouseover="this.style.color='var(--red-hat-red)'" 
+                               onmouseout="this.style.color='#212529'">
+                                Nitish Singh
+                                <i class="fas fa-external-link-alt ms-1 small text-muted"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <!-- Key Contributors Section -->
+                    <div class="mb-3">
+                        <h6 class="mb-2" style="color: var(--red-hat-red-dark);">
+                            <i class="fas fa-users-cog me-1"></i>
+                            Key Contributors
+                        </h6>
+                        <div class="ps-3">
+                            <div class="d-flex justify-content-between">
+                                <a href="https://rover.redhat.com/people/profile/riskumar" target="_blank" 
+                                   class="text-decoration-none fw-bold text-dark"
+                                   style="transition: color 0.3s ease;" 
+                                   onmouseover="this.style.color='var(--red-hat-red)'" 
+                                   onmouseout="this.style.color='#212529'">
+                                    Rishika Kumar
+                                    <i class="fas fa-external-link-alt ms-1 small text-muted"></i>
+                                </a>
+                                <a href="https://rover.redhat.com/people/profile/schilhat" target="_blank" 
+                                   class="text-decoration-none fw-bold text-dark"
+                                   style="transition: color 0.3s ease;" 
+                                   onmouseover="this.style.color='var(--red-hat-red)'" 
+                                   onmouseout="this.style.color='#212529'">
+                                    Shubham Chilhate
+                                    <i class="fas fa-external-link-alt ms-1 small text-muted"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="text-center mt-3">
+                        <span class="badge px-3 py-2 text-white" style="background: var(--red-hat-red);">
+                            <i class="fas fa-heart me-1"></i>
+                            Built with passion for innovation
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>

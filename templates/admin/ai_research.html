@@ -4,6 +4,9 @@
 
 {% block show_sidebar %}false{% endblock %}
 
+{% block extra_head %}
+{% endblock %}
+
 {% block content %}
 <!-- AI Research Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -309,8 +312,8 @@ function addMessage(content, type, metadata = null) {
             icon = '<i class="fas fa-user me-2"></i>';
             break;
         case 'ai':
-            messageClass = 'bg-success text-white';
-            icon = '<i class="fas fa-robot me-2"></i>';
+            messageClass = 'bg-light border';
+            icon = '<i class="fas fa-robot me-2 text-danger"></i>';
             break;
         case 'error':
             messageClass = 'bg-danger text-white';
@@ -318,30 +321,54 @@ function addMessage(content, type, metadata = null) {
             break;
     }
     
-    let metadataHtml = '';
-    if (metadata && (metadata.tools_used || metadata.research_steps)) {
-        metadataHtml = `
-            <div class="mt-2 p-2 bg-light rounded">
-                ${metadata.tools_used ? `
-                    <small class="text-muted d-block">
-                        <strong>Tools Used:</strong> ${metadata.tools_used.join(', ')}
-                    </small>
-                ` : ''}
-                ${metadata.research_steps && metadata.research_steps.length > 0 ? `
-                    <small class="text-muted d-block mt-1">
-                        <strong>Research Steps:</strong> ${metadata.research_steps.length} autonomous actions
-                    </small>
-                ` : ''}
+    if (type === 'ai') {
+        // Simple AI response with natural markdown formatting
+        // Convert basic markdown to HTML
+        let formattedContent = content
+            .replace(/## (.*)/g, '<h4 class="text-danger fw-bold mt-3 mb-2">$1</h4>')
+            .replace(/• (.*)/g, '<li class="mb-1">$1</li>')
+            .replace(/(\d+\.) (.*)/g, '<li class="mb-1 fw-bold">$2</li>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong class="text-primary">$1</strong>')
+            .replace(/\n/g, '<br>');
+        
+        // Wrap lists in ul tags
+        formattedContent = formattedContent.replace(/(<li class="mb-1">.*?<\/li>)/gs, '<ul class="list-unstyled ps-3">$1</ul>');
+        
+        messageDiv.innerHTML = `
+            <div class="w-100 p-3 border rounded bg-light">
+                <div class="text-danger fw-bold mb-2">
+                    <i class="fas fa-robot me-2"></i>AI Research Assistant
+                </div>
+                ${formattedContent}
             </div>
         `;
+    } else {
+        // Regular formatting for user/error messages
+        let metadataHtml = '';
+        if (metadata && (metadata.tools_used || metadata.research_steps)) {
+            metadataHtml = `
+                <div class="mt-2 p-2 bg-light rounded">
+                    ${metadata.tools_used ? `
+                        <small class="text-muted d-block">
+                            <strong>Tools Used:</strong> ${metadata.tools_used.join(', ')}
+                        </small>
+                    ` : ''}
+                    ${metadata.research_steps && metadata.research_steps.length > 0 ? `
+                        <small class="text-muted d-block mt-1">
+                            <strong>Research Steps:</strong> ${metadata.research_steps.length} autonomous actions
+                        </small>
+                    ` : ''}
+                </div>
+            `;
+        }
+        
+        messageDiv.innerHTML = `
+            <div class="d-inline-block p-3 rounded ${messageClass}" style="max-width: 80%;">
+                ${icon}${content}
+            </div>
+            ${metadataHtml}
+        `;
     }
-    
-    messageDiv.innerHTML = `
-        <div class="d-inline-block p-3 rounded ${messageClass}" style="max-width: 80%;">
-            ${icon}${content}
-        </div>
-        ${metadataHtml}
-    `;
     
     chatMessages.appendChild(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -388,4 +415,6 @@ function useExample(query) {
 // Auto-focus chat input
 document.getElementById('chatInput').focus();
 </script>
+
+
 {% endblock %}

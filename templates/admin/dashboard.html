@@ -1,13 +1,13 @@
 {% extends "admin/base.html" %}
 
-{% block title %}Admin Dashboard - Red Hat Idea Hub{% endblock %}
+{% block title %}Admin Dashboard - Idea Hub{% endblock %}
 
 {% block content %}
 <!-- Dashboard Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h1 class="fw-bold text-dark">Admin Dashboard</h1>
-        <p class="text-muted mb-0">Comprehensive overview of Red Hat Idea Hub innovation metrics</p>
+        <p class="text-muted mb-0">Comprehensive overview of Idea Hub innovation metrics</p>
     </div>
     <div>
         <button class="btn btn-danger" onclick="refreshDashboard()">
@@ -399,7 +399,7 @@ async function initializeCharts() {
                         statusBreakdown['Under Review'] || 0,
                         kpiData.total_contributors || 0
                     ],
-                    backgroundColor: '#cc0000',  // Consistent Red Hat red
+                    backgroundColor: '#cc0000',  // Consistent brand red
                     borderColor: '#cc0000',
                     borderWidth: 1
                 }]

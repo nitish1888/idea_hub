@@ -1,0 +1,21 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    haproxy.router.openshift.io/timeout: 180s
+  labels:
+    shard: internal
+    app: idea-hub-updated
+    paas.redhat.com/appcode: TAAI-001
+  name: idea-hub-updated
+  namespace: trend-analysis-using-ai--runtime-int
+spec:
+  # Let OpenShift auto-generate the hostname to avoid conflicts
+  # host: idea-hub-updated-trend-analysis-using-ai--runtime-int.apps.int.spoke.preprod.us-east-1.aws.paas.redhat.com
+  pathType: Prefix
+  to:
+    kind: Service
+    name: idea-hub-updated
+    weight: 100
+  port:
+    targetPort: 8080-tcp

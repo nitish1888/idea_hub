@@ -216,7 +216,23 @@ class VectorService:
                     })
             
             logging.info(f"🔍 Found {len(similar_ideas)} similar ideas for query: '{query_text[:50]}...'")
-            return similar_ideas
+            
+            # Remove duplicates by idea_id (keep the one with highest similarity)
+            unique_ideas = {}
+            for idea in similar_ideas:
+                idea_id = idea.get('idea_id')
+                if idea_id not in unique_ideas or idea.get('similarity', 0) > unique_ideas[idea_id].get('similarity', 0):
+                    if idea_id in unique_ideas:
+                        logging.warning(f"⚠️ Removing duplicate for idea_id {idea_id} (keeping higher similarity)")
+                    unique_ideas[idea_id] = idea
+            
+            # Convert back to list, sorted by similarity
+            final_results = sorted(unique_ideas.values(), key=lambda x: x.get('similarity', 0), reverse=True)
+            
+            if len(final_results) != len(similar_ideas):
+                logging.info(f"🧹 Removed {len(similar_ideas) - len(final_results)} duplicate entries")
+            
+            return final_results
             
         except Exception as e:
             logging.error(f"❌ Error searching similar ideas: {e}")

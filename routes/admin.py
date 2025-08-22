@@ -55,6 +55,12 @@ def admin_contributors():
     """Admin contributor management page"""
     return render_template('admin/contributors.html')
 
+@admin_bp.route('/search')
+@login_required
+def admin_search():
+    """Admin search interface for ideas"""
+    return render_template('admin/search.html')
+
 @admin_bp.route('/users')
 @login_required
 def admin_users():
@@ -487,4 +493,38 @@ def deactivate_admin_user(username):
             
     except Exception as e:
         logging.error(f"Error deactivating admin user: {e}")
+        return jsonify({"status": "error", "message": str(e)}), 500
+
+@admin_bp.route('/api/ideas/<int:idea_id>/status', methods=['PUT'])
+@login_required
+def update_idea_status(idea_id):
+    """Update the status of an idea (approve, reject, etc.)"""
+    try:
+        data = request.get_json()
+        new_status = data.get('status')
+        admin_notes = data.get('admin_notes', '')
+        
+        if not new_status:
+            return jsonify({"status": "error", "message": "Status is required"}), 400
+            
+        # Valid status values
+        valid_statuses = ['approved', 'rejected', 'pending', 'Under Review', 'In Progress']
+        if new_status not in valid_statuses:
+            return jsonify({"status": "error", "message": "Invalid status"}), 400
+        
+        # Update idea status in database
+        success = IdeaModel.update_idea_status(idea_id, new_status, admin_notes)
+        
+        if success:
+            return jsonify({
+                "status": "success", 
+                "message": f"Idea status updated to {new_status}",
+                "idea_id": idea_id,
+                "new_status": new_status
+            })
+        else:
+            return jsonify({"status": "error", "message": "Failed to update idea status"}), 500
+            
+    except Exception as e:
+        logging.error(f"Error updating idea status: {e}")
         return jsonify({"status": "error", "message": str(e)}), 500

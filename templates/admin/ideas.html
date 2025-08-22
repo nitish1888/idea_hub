@@ -77,7 +77,8 @@
                 <select class="form-select" id="statusFilter" onchange="filterIdeas()">
                     <option value="">All Statuses</option>
                     <option value="approved">Approved</option>
-                    <option value="pending">Pending</option>
+                    <option value="Under Review">Under Review</option>
+                    <option value="In Progress">In Progress</option>
                     <option value="rejected">Rejected</option>
                 </select>
             </div>
@@ -161,9 +162,13 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-danger" onclick="approveIdea()">
+                <button type="button" class="btn btn-success" onclick="approveIdea()">
                     <i class="fas fa-check me-2"></i>
                     Approve Idea
+                </button>
+                <button type="button" class="btn btn-danger" onclick="rejectIdea()">
+                    <i class="fas fa-times me-2"></i>
+                    Reject Idea
                 </button>
             </div>
         </div>
@@ -204,7 +209,7 @@ async function loadIdeas() {
 
 function updateStats(data) {
     document.getElementById('totalIdeas').textContent = data.total_count || 0;
-    document.getElementById('approvedIdeas').textContent = data.status_breakdown?.approved || 0;
+    document.getElementById('approvedIdeas').textContent = (data.status_breakdown?.approved || 0) + (data.status_breakdown?.Approved || 0);
     // Fix: Use "Under Review" instead of "pending"
     document.getElementById('pendingIdeas').textContent = data.status_breakdown?.['Under Review'] || 0;
     // Fix: This should show recent submissions, not approved count
@@ -250,6 +255,9 @@ function displayIdeas(ideas) {
                     </button>
                     <button class="btn btn-outline-success" onclick="approveIdeaQuick(${idea.id})" title="Approve">
                         <i class="fas fa-check"></i>
+                    </button>
+                    <button class="btn btn-outline-danger" onclick="rejectIdeaQuick(${idea.id})" title="Reject">
+                        <i class="fas fa-times"></i>
                     </button>
                     <button class="btn btn-outline-secondary" onclick="editIdea(${idea.id})" title="Edit">
                         <i class="fas fa-edit"></i>
@@ -318,7 +326,10 @@ function getImpactBadgeClass(impact) {
 function getStatusBadgeClass(status) {
     switch (status) {
         case 'approved': return 'bg-success';
+        case 'Approved': return 'bg-success';
+        case 'Under Review': return 'bg-warning';
         case 'pending': return 'bg-warning';
+        case 'In Progress': return 'bg-info';
         case 'rejected': return 'bg-danger';
         default: return 'bg-secondary';
     }
@@ -395,13 +406,82 @@ function approveIdea() {
     }
 }
 
-function approveIdeaQuick(ideaId) {
-    // For demo purposes, just update the local data
-    const idea = allIdeas.find(i => i.id == ideaId);
-    if (idea) {
-        idea.status = 'approved';
-        displayIdeas(filteredIdeas);
-        alert('Idea approved successfully!');
+function rejectIdea() {
+    if (currentIdeaId) {
+        rejectIdeaQuick(currentIdeaId);
+        bootstrap.Modal.getInstance(document.getElementById('ideaDetailModal')).hide();
+    }
+}
+
+async function approveIdeaQuick(ideaId) {
+    try {
+        const response = await fetch(`/admin/api/ideas/${ideaId}/status`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                status: 'approved',
+                admin_notes: 'Approved via admin panel'
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+            // Update local data
+            const idea = allIdeas.find(i => i.id == ideaId);
+            if (idea) {
+                idea.status = 'approved';
+                displayIdeas(filteredIdeas);
+                await refreshStats();
+            }
+            alert('Idea approved successfully!');
+        } else {
+            alert('Error approving idea: ' + result.message);
+        }
+        
+    } catch (error) {
+        console.error('Error approving idea:', error);
+        alert('Error approving idea. Please try again.');
+    }
+}
+
+async function rejectIdeaQuick(ideaId) {
+    if (!confirm('Are you sure you want to reject this idea?')) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`/admin/api/ideas/${ideaId}/status`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                status: 'rejected',
+                admin_notes: 'Rejected via admin panel'
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+            // Update local data
+            const idea = allIdeas.find(i => i.id == ideaId);
+            if (idea) {
+                idea.status = 'rejected';
+                displayIdeas(filteredIdeas);
+                await refreshStats();
+            }
+            alert('Idea rejected successfully!');
+        } else {
+            alert('Error rejecting idea: ' + result.message);
+        }
+        
+    } catch (error) {
+        console.error('Error rejecting idea:', error);
+        alert('Error rejecting idea. Please try again.');
     }
 }
 
@@ -429,6 +509,18 @@ function showNoIdeas() {
     document.getElementById('loadingState').style.display = 'none';
     document.getElementById('ideasTable').style.display = 'none';
     document.getElementById('noIdeas').style.display = 'block';
+}
+
+async function refreshStats() {
+    try {
+        const response = await fetch('/admin/api/ideas/management');
+        const data = await response.json();
+        if (data.status === 'success') {
+            updateStats(data.data);
+        }
+    } catch (error) {
+        console.error('Error refreshing stats:', error);
+    }
 }
 </script>
 {% endblock %}

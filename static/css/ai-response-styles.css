@@ -1,0 +1,465 @@
+/* Enhanced AI Response Styling - Red Hat Theme */
+
+/* Main AI Analysis Container */
+.ai-analysis-container {
+    background: #ffffff;
+    border: 2px solid #e6e6e6;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    font-family: "Red Hat Display", "Overpass", Arial, sans-serif;
+}
+
+.analysis-paragraph {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+    color: #151515;
+    font-size: 1rem;
+}
+
+.analysis-section {
+    color: #EE0000;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 1.5rem 0 0.8rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 3px solid #EE0000;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.insight-header {
+    background: #f5f5f5;
+    padding: 1rem 1.2rem;
+    border-left: 5px solid #EE0000;
+    margin: 1rem 0 0.5rem 0;
+    font-weight: 600;
+    color: #151515;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border-radius: 0 4px 4px 0;
+}
+
+.insight-content {
+    padding: 0.8rem 1.2rem;
+    margin-bottom: 1rem;
+    background: #fafafa;
+    border-radius: 0 4px 4px 4px;
+    border-left: 2px solid #c7c7c7;
+}
+
+/* Metrics and Numbers - Red Hat Theme */
+.metric {
+    background: #EE0000;
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 3px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.count {
+    background: #151515;
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 3px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.highlight {
+    background: #ffebee;
+    color: #EE0000;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    font-weight: 600;
+    border: 1px solid #EE0000;
+}
+
+/* Research Timeline - Red Hat Theme */
+.research-timeline {
+    background: #f5f5f5;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    border-left: 5px solid #EE0000;
+    border: 2px solid #e6e6e6;
+}
+
+.timeline-header {
+    color: #EE0000;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.timeline-step {
+    background: white;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    overflow: hidden;
+    border: 1px solid #e6e6e6;
+}
+
+.step-header {
+    background: #151515;
+    color: white;
+    padding: 1rem 1.2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    font-weight: 600;
+}
+
+.step-number {
+    background: #EE0000;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.step-tool {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.step-content {
+    padding: 1.2rem;
+    color: #151515;
+}
+
+/* Trends Results - Red Hat Theme */
+.trends-result {
+    background: #ffffff;
+    border-radius: 4px;
+    padding: 1.2rem;
+    border: 1px solid #e6e6e6;
+}
+
+.trend-section {
+    color: #EE0000;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 1rem 0 0.5rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid #EE0000;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.metric-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid #f5f5f5;
+}
+
+.metric-label {
+    font-weight: 600;
+    color: #151515;
+    font-size: 1rem;
+}
+
+.metric-value {
+    background: #151515;
+    color: white;
+    padding: 0.3rem 1rem;
+    border-radius: 3px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.category-item, .status-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 1rem;
+    margin: 0.3rem 0;
+    background: #f5f5f5;
+    border-radius: 4px;
+    border-left: 3px solid #EE0000;
+}
+
+.category-name, .status-label {
+    font-weight: 600;
+    color: #151515;
+}
+
+.category-count, .category-percent, .status-value {
+    font-size: 0.9rem;
+    color: #666666;
+    font-weight: 500;
+}
+
+/* Similar Ideas Results - Red Hat Theme */
+.result-summary {
+    background: #ffebee;
+    color: #EE0000;
+    padding: 1rem 1.2rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    border: 2px solid #EE0000;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.ideas-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.idea-item {
+    background: white;
+    border: 2px solid #e6e6e6;
+    border-radius: 4px;
+    padding: 1.2rem;
+    transition: all 0.2s ease;
+    border-left: 4px solid #EE0000;
+}
+
+.idea-item:hover {
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+    transform: translateY(-2px);
+    border-left: 4px solid #151515;
+}
+
+.idea-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+}
+
+.idea-title {
+    font-weight: 700;
+    color: #151515;
+    font-size: 1.1rem;
+}
+
+.similarity-score {
+    background: #EE0000;
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.idea-meta {
+    display: flex;
+    gap: 1.5rem;
+    font-size: 0.9rem;
+    color: #666666;
+    font-weight: 500;
+}
+
+.idea-category, .idea-contributor {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+/* Idea Details */
+.idea-details {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.detail-item {
+    display: flex;
+    padding: 0.6rem 0;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.detail-item:last-child {
+    border-bottom: none;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #495057;
+    min-width: 120px;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.detail-value {
+    color: #2c3e50;
+    flex: 1;
+}
+
+/* Contributors List */
+.contributors-list {
+    display: grid;
+    gap: 0.8rem;
+}
+
+.contributor-item {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.contributor-name {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.contributor-skills, .contributor-availability {
+    font-size: 0.9rem;
+    color: #6c757d;
+    margin: 0.3rem 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Tools Summary - Red Hat Theme */
+.tools-summary {
+    background: #f5f5f5;
+    border-radius: 4px;
+    padding: 1.2rem;
+    margin: 1rem 0;
+    border: 2px solid #e6e6e6;
+    border-left: 5px solid #EE0000;
+}
+
+.tools-header {
+    color: #EE0000;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tools-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+}
+
+.tool-badge {
+    background: #151515;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 3px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    transition: all 0.2s ease;
+}
+
+.tool-badge:hover {
+    background: #EE0000;
+}
+
+/* Message Improvements - Red Hat Theme */
+.message.assistant {
+    background: #ffffff;
+    border: 2px solid #e6e6e6;
+    border-radius: 4px;
+    padding: 0;
+    margin: 1rem 0;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    overflow: hidden;
+    font-family: "Red Hat Display", "Overpass", Arial, sans-serif;
+}
+
+.message.system {
+    background: #f5f5f5;
+    border-left: 5px solid #EE0000;
+    padding: 1.2rem;
+    margin: 0.8rem 0;
+    border-radius: 0 4px 4px 0;
+    color: #151515;
+    font-weight: 500;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .idea-header, .metric-item, .category-item, .status-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.3rem;
+    }
+    
+    .detail-item {
+        flex-direction: column;
+        gap: 0.3rem;
+    }
+    
+    .detail-label {
+        min-width: auto;
+    }
+    
+    .tools-list {
+        flex-direction: column;
+    }
+    
+    .idea-meta {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}
+
+/* Loading and Animation */
+.message.assistant {
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

@@ -19,5 +19,6 @@ Jinja2
 urllib3>=2.0.0
 Flask-Login==0.6.3
 Werkzeug==3.0.1
-# MCP Agentic AI (uses Gemini's built-in function calling)
-# No additional dependencies needed
+# MCP Client Dependencies
+httpx
+asyncio

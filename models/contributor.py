@@ -152,6 +152,8 @@ class ContributorModel:
             logging.info(f"✅ Created new contributor: {contributor_data['name']} (ID: {contributor_id})")
             
             return {
+                "status": "success",
+                "contributor_id": contributor_id,
                 "id": contributor_id,
                 "created_at": created_at.isoformat(),
                 **contributor_data

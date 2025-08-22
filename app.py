@@ -353,7 +353,7 @@ def main():
     app = create_app()
     
     # Display startup banner and information
-    print("🚀 Starting Red Hat Idea Hub - Modern Web Application")
+    print("🚀 Starting Idea Hub - Modern Web Application")
     print("📝 Flask backend with modern HTML/CSS/JS frontend")
     print("\n🎨 Web Interface:")
     print("  GET  / - Main Dashboard")
@@ -395,8 +395,8 @@ def main():
     print("  POST /api/mcp/research - Autonomous AI research with tool calling")
     
     # Display configuration information
-    print(f"\n🌐 Web Application: http://localhost:5001")
-    print(f"🌐 API Server: http://localhost:5001/api")
+    print(f"\n🌐 Web Application: http://localhost:8080")
+    print(f"🌐 API Server: http://localhost:8080/api")
     print(f"🗄️  Database: {Config.DB_CONFIG['dbname']}")
     print(f"🤖 AI Service: {'Enabled' if Config.GEMINI_API_KEY else 'Disabled (set GEMINI_API_KEY)'}")
     print(f"📊 Vector Store: {Config.VECTOR_TABLE_NAME}")
@@ -408,7 +408,7 @@ def main():
     else:
         print(f"⚠️  Admin system initialization failed - check database connection")
     
-    print(f"\n💡 Open http://localhost:5001 in your browser to access the Idea Hub")
+    print(f"\n💡 Open http://localhost:8080 in your browser to access the Idea Hub")
     
     # Start the Flask development server
     # Note: For production, use a WSGI server like gunicorn

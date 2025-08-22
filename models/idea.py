@@ -115,6 +115,8 @@ class IdeaModel:
             conn.close()
             
             return {
+                "status": "success", 
+                "idea_id": idea_id,
                 "id": idea_id,
                 "created_at": created_at,
                 **idea_data
@@ -296,3 +298,56 @@ class IdeaModel:
         except Exception as e:
             logging.error(f"Error clearing ideas: {e}")
             raise 
+    
+    @staticmethod
+    def update_idea_status(idea_id, new_status, admin_notes=''):
+        """Update the status of an idea and optionally add admin notes"""
+        try:
+            conn = get_db_connection()
+            cur = conn.cursor()
+            
+            # First, check if admin_notes column exists, if not add it
+            try:
+                cur.execute("""
+                    SELECT column_name 
+                    FROM information_schema.columns 
+                    WHERE table_name='ideas' AND column_name='admin_notes'
+                """)
+                column_exists = cur.fetchone() is not None
+                
+                if not column_exists:
+                    logging.info("Adding admin_notes column to ideas table...")
+                    cur.execute("ALTER TABLE ideas ADD COLUMN admin_notes TEXT DEFAULT ''")
+                    conn.commit()
+                    logging.info("✅ Added admin_notes column to ideas table")
+                    
+            except Exception as schema_error:
+                logging.warning(f"Schema check/update warning: {schema_error}")
+            
+            # Update the idea status and admin notes
+            update_query = """
+                UPDATE ideas 
+                SET status = %s, 
+                    admin_notes = %s,
+                    updated_at = CURRENT_TIMESTAMP 
+                WHERE id = %s
+            """
+            
+            cur.execute(update_query, (new_status, admin_notes, idea_id))
+            
+            if cur.rowcount == 0:
+                cur.close()
+                conn.close()
+                logging.warning(f"No idea found with ID {idea_id}")
+                return False
+                
+            conn.commit()
+            cur.close()
+            conn.close()
+            
+            logging.info(f"✅ Idea {idea_id} status updated to '{new_status}'")
+            return True
+            
+        except Exception as e:
+            logging.error(f"Error updating idea status: {e}")
+            raise

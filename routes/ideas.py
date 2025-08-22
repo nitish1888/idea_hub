@@ -6,6 +6,7 @@ from flask import Blueprint, request, jsonify
 from models.idea import IdeaModel
 from services.vector_service import vector_service
 from services.ai_service import gemini_service
+from services.ai_service_enhanced import enhanced_ai_service
 from services.pdf_service import pdf_service
 from services.ai_summary_service import ai_summary_service
 from utils.sample_data import get_sample_ideas
@@ -110,54 +111,78 @@ def submit_idea():
         # Check if user wants to override duplicate detection
         override_duplicate = data.get('override_duplicate', False)
         
-        # Check for high similarity matches (70%+ threshold) unless overriding
+        # Check for high similarity matches using Enhanced AI service unless overriding
         if not override_duplicate:
-            similar_ideas = vector_service.search_similar_ideas(
-                f"{data['title']} {data['description']} {data.get('abstract', '')}", 
-                top_k=10
-            )
+            idea_text = f"{data['title']} {data['description']} {data.get('abstract', '')}"
             
-            # Filter for high similarity matches (70%+ = potential duplicates)
-            high_similarity_matches = [
-                idea for idea in similar_ideas 
-                if idea['similarity'] >= 70.0  # 70% threshold as requested
-            ]
+            # Use enhanced AI service for duplicate detection (MCP server with fallback)
+            logging.info("🔍 Using Enhanced AI service for duplicate detection...")
+            duplicates = enhanced_ai_service.detect_duplicates(idea_text, threshold=0.70)
             
-            if high_similarity_matches:
-                # Get AI summary and comparison context for the top match
-                top_match = high_similarity_matches[0]
+            # If enhanced service returns nothing, try local vector service as fallback
+            if not duplicates and vector_service.is_available():
+                logging.info("🔄 Using local vector service as fallback for duplicate detection")
+                similar_ideas = vector_service.search_similar_ideas(idea_text, top_k=10)
+                duplicates = []
+                for idea in similar_ideas:
+                    if idea.get('similarity', 0) >= 70.0:  # 70% threshold
+                        duplicates.append({
+                            'id': idea.get('id'),
+                            'title': idea.get('title', ''),
+                            'description': idea.get('description', ''),
+                            'contributor': idea.get('contributor', ''),
+                            'similarity_score': idea.get('similarity', 0.0) / 100.0  # Convert to 0-1 scale
+                        })
+            
+            if duplicates:
+                top_match = duplicates[0]
+                similarity_pct = top_match.get('similarity_score', 0.0) * 100
                 
-                # Generate AI-enhanced duplicate information with timeout
+                # Generate AI-enhanced summaries using Enhanced AI service
                 try:
                     logging.info("🤖 Generating AI summary for duplicate detection...")
-                    ai_summary = ai_summary_service.generate_idea_summary(top_match, max_words=200)
-                    comparison_context = ai_summary_service.generate_comparison_context(
-                        data, top_match, top_match['similarity']
+                    
+                    # Generate summary for the top match
+                    summary_text = f"Title: {top_match.get('title', '')}\nDescription: {top_match.get('description', '')}"
+                    ai_summary = enhanced_ai_service.generate_summary(summary_text)
+                    
+                    # Generate collaboration suggestion
+                    comparison_context = enhanced_ai_service.generate_collaboration_suggestion(
+                        data, top_match, similarity_pct / 100.0
                     )
+                    
+                    if not ai_summary:
+                        ai_summary = f"Existing idea in {top_match.get('category', 'Unknown')} category."
+                    if not comparison_context:
+                        comparison_context = f"Found {similarity_pct:.1f}% similarity. Review the existing idea before proceeding."
+                        
                     logging.info("✅ AI summary generated successfully")
                 except Exception as e:
                     logging.warning(f"⚠️ AI summary failed, using fallback: {e}")
-                    ai_summary = f"Existing idea in {top_match.get('category', 'Unknown')} category."
-                    comparison_context = f"Found {top_match['similarity']:.1f}% similarity. Review the existing idea before proceeding."
+                    ai_summary = f"Existing idea by {top_match.get('contributor', 'Unknown contributor')}."
+                    comparison_context = f"Found {similarity_pct:.1f}% similarity. Review the existing idea before proceeding."
                 
                 # Enhance duplicates with AI summaries
                 enhanced_duplicates = []
-                for match in high_similarity_matches[:3]:  # Top 3 matches
+                for i, match in enumerate(duplicates[:3]):  # Top 3 matches
+                    match_similarity = match.get('similarity_score', 0.0) * 100
                     enhanced_duplicates.append({
                         **match,
-                        "ai_summary": ai_summary if match == top_match else f"Similar idea by {match['contributor']}",
-                        "comparison_context": comparison_context if match == top_match else f"{match['similarity']:.1f}% similarity detected"
+                        "similarity": match_similarity,  # Convert back to percentage for compatibility
+                        "ai_summary": ai_summary if i == 0 else f"Similar idea by {match.get('contributor', 'Unknown')}",
+                        "comparison_context": comparison_context if i == 0 else f"{match_similarity:.1f}% similarity detected"
                     })
                 
                 response_data = {
                     "status": "high_similarity_detected", 
-                    "message": f"Found {top_match['similarity']:.1f}% similar idea: '{top_match['title']}' by {top_match['contributor']}",
+                    "message": f"Found {similarity_pct:.1f}% similar idea: '{top_match.get('title', '')}' by {top_match.get('contributor', '')}",
                     "duplicates": enhanced_duplicates,
                     "suggestion": "Review the similar idea and consider collaboration or highlight key differences",
                     "ai_insights": {
                         "similarity_explanation": comparison_context,
                         "existing_idea_summary": ai_summary,
-                        "recommendation": "Consider reaching out to collaborate or clearly differentiate your approach"
+                        "recommendation": "Consider reaching out to collaborate or clearly differentiate your approach",
+                        "ai_service": "Enhanced AI (MCP + fallback)"
                     }
                 }
                 
@@ -314,31 +339,129 @@ def submit_idea():
 
 @ideas_bp.route('/api/ideas/search', methods=['POST'])
 def search_ideas():
-    """Search for similar ideas using AI vector similarity"""
+    """Search for similar ideas using Enhanced AI service (MCP + fallback)"""
     try:
         data = request.get_json()
         query = data.get('query', '')
+        search_type = data.get('search_type', 'hybrid')  # hybrid, semantic, keyword
+        limit = data.get('limit', 50)  # Increased default limit since we filter by 70% similarity
+        threshold = 0.7  # 70% similarity threshold for quality results
         
         if not query:
             return jsonify({"error": "Query is required"}), 400
         
-        # Search using vector similarity
-        results = vector_service.search_similar_ideas(query, top_k=10)
+        # Use enhanced AI service (MCP server with fallback)
+        results = enhanced_ai_service.search_ideas(query, search_type, limit, threshold)
         
-        # Skip AI enhancement for faster search results
-        # AI summaries can be generated on-demand if needed
-        enhanced_results = results  # Use original results for speed
+        # Debug: Check for duplicates in results
+        if results:
+            logging.info(f"🔍 Enhanced AI service returned {len(results)} results")
+            ids_seen = set()
+            unique_results = []
+            for i, result in enumerate(results):
+                result_id = result.get('id')
+                logging.info(f"  Result {i}: ID={result_id}, Title={result.get('title')}")
+                if result_id not in ids_seen:
+                    ids_seen.add(result_id)
+                    unique_results.append(result)
+                else:
+                    logging.warning(f"⚠️ REMOVING duplicate result with ID {result_id} at position {i}")
+            
+            if len(unique_results) != len(results):
+                logging.info(f"🧹 Filtered from {len(results)} to {len(unique_results)} unique results")
+            results = unique_results
+        
+        # If enhanced service returns empty, try local vector service as final fallback
+        if not results and vector_service.is_available():
+            logging.info("🔄 Using local vector service as final fallback for search")
+            local_results = vector_service.search_similar_ideas(query, top_k=limit)
+            # Convert local results to expected format
+            results = []
+            for result in local_results:
+                similarity_score = result.get('similarity', 0.0) / 100.0  # Convert percentage to 0-1 scale
+                # Only include results above threshold
+                if similarity_score >= threshold:
+                    results.append({
+                        'id': result.get('idea_id'),  # Fix field mapping
+                        'title': result.get('title', ''),
+                        'description': result.get('content_preview', ''),  # Use content preview as description
+                        'contributor': result.get('contributor', ''),
+                        'category': result.get('category', ''),
+                        'impact': result.get('impact', ''),
+                        'similarity_score': similarity_score
+                    })
         
         return jsonify({
+            "status": "success",
             "query": query,
-            "results": enhanced_results,
-            "total_found": len(enhanced_results),
-            "note": "Fast search results - AI summaries generated on demand"
+            "search_type": search_type,
+            "results": results,
+            "total_found": len(results),
+            "similarity_threshold": threshold,
+            "ai_service": "Enhanced AI (MCP + fallback)",
+            "note": f"AI-powered semantic search with {threshold*100}% minimum similarity threshold"
         })
         
     except Exception as e:
         logging.error(f"Error searching ideas: {e}")
         return jsonify({"error": str(e)}), 500
+
+@ideas_bp.route('/api/mcp/test', methods=['GET'])
+def test_mcp_integration():
+    """Test MCP server integration and capabilities"""
+    try:
+        result = {
+            "mcp_client_available": False,
+            "mcp_server_healthy": False,
+            "enhanced_ai_available": False,
+            "embedding_stats": None,
+            "test_search": None,
+            "error": None
+        }
+        
+        # Test Enhanced AI Service availability
+        if enhanced_ai_service.is_available():
+            result["enhanced_ai_available"] = True
+            
+            # Test MCP client specifically  
+            from services.mcp_client import mcp_client
+            if enhanced_ai_service.mcp_enabled and mcp_client:
+                result["mcp_client_available"] = True
+                
+                if mcp_client.is_available():
+                    result["mcp_server_healthy"] = True
+                    
+                    # Get embedding stats from MCP server
+                    try:
+                        stats = enhanced_ai_service.get_embedding_stats()
+                        result["embedding_stats"] = stats
+                    except Exception as e:
+                        result["embedding_stats_error"] = str(e)
+                    
+                    # Test search functionality
+                    try:
+                        test_results = enhanced_ai_service.search_ideas("machine learning", limit=3)
+                        result["test_search"] = {
+                            "query": "machine learning",
+                            "results_count": len(test_results),
+                            "first_result": test_results[0] if test_results else None
+                        }
+                    except Exception as e:
+                        result["test_search_error"] = str(e)
+        
+        return jsonify({
+            "status": "mcp_test_complete",
+            "results": result,
+            "timestamp": "2025-08-17T13:15:00Z"
+        })
+        
+    except Exception as e:
+        logging.error(f"Error testing MCP integration: {e}")
+        return jsonify({
+            "status": "error", 
+            "error": str(e),
+            "timestamp": "2025-08-17T13:15:00Z"
+        }), 500
 
 @ideas_bp.route('/api/ideas/restore-embeddings', methods=['POST'])
 def restore_embeddings():
@@ -488,6 +611,35 @@ def search_debug():
     except Exception as e:
         logging.error(f"Error in search debug: {e}")
         return jsonify({"status": "error", "error": str(e)}), 500
+
+@ideas_bp.route('/api/ideas/test-duplicates', methods=['POST'])
+def test_duplicate_detection():
+    """Test endpoint to check duplicate detection based on text content"""
+    try:
+        data = request.get_json()
+        test_text = data.get('text', '')
+        threshold = data.get('threshold', 0.7)  # 70% default
+        
+        if not test_text:
+            return jsonify({"error": "Text is required"}), 400
+        
+        logging.info(f"🧪 Testing duplicate detection for: '{test_text[:50]}...'")
+        
+        # Use enhanced AI service for duplicate detection
+        duplicates = enhanced_ai_service.detect_duplicates(test_text, threshold)
+        
+        return jsonify({
+            "status": "success",
+            "test_text": test_text[:100] + "..." if len(test_text) > 100 else test_text,
+            "threshold": threshold,
+            "duplicates_found": len(duplicates),
+            "duplicates": duplicates,
+            "message": f"Found {len(duplicates)} similar ideas above {threshold*100}% threshold"
+        })
+        
+    except Exception as e:
+        logging.error(f"Error testing duplicate detection: {e}")
+        return jsonify({"error": str(e)}), 500
 
 @ideas_bp.route('/api/ideas/upload-pdf', methods=['POST'])
 def upload_pdf_test():

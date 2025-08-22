@@ -3,6 +3,8 @@
 {% block title %}AI Research Assistant - Red Hat Idea Hub{% endblock %}
 
 {% block extra_head %}
+
+
 <style>
 /* AI Research Page Styles */
 .ai-research-container {
@@ -352,6 +354,8 @@
     </div>
 </div>
 
+
+
 <script>
 // AI Research Interface JavaScript
 document.addEventListener('DOMContentLoaded', function() {
@@ -452,23 +456,8 @@ document.addEventListener('DOMContentLoaded', function() {
             hideTyping();
             
             if (data.status === 'success') {
-                // Display agent analysis
+                // Simple display of AI analysis with natural formatting
                 addMessage('assistant', data.agent_analysis || 'Research completed successfully.');
-                
-                // Show research steps if available
-                if (data.research_steps && data.research_steps.length > 0) {
-                    let stepsMessage = '📋 **Research Steps:**\n';
-                    data.research_steps.forEach((step, index) => {
-                        stepsMessage += `\n${index + 1}. **${step.tool}**: ${step.result}`;
-                    });
-                    addMessage('system', stepsMessage);
-                }
-                
-                // Show tools used summary
-                if (data.tools_used && data.tools_used.length > 0) {
-                    const toolsMessage = `🔧 **Tools Used:** ${data.tools_used.join(', ')}`;
-                    addMessage('system', toolsMessage);
-                }
             } else {
                 addMessage('assistant', `❌ **Research Failed:** ${data.message}`);
             }
@@ -485,18 +474,29 @@ document.addEventListener('DOMContentLoaded', function() {
         researchInput.focus();
     }
 
-    function addMessage(type, content) {
+    function addMessage(type, content, metadata = null) {
         const messageDiv = document.createElement('div');
         messageDiv.className = `message ${type}`;
         
-        if (type === 'assistant' || type === 'system') {
-            // Convert markdown-like formatting to HTML
+        if (type === 'assistant') {
+            // Simple markdown to HTML conversion
+            content = content
+                .replace(/## (.*)/g, '<h4 style="color: var(--red-hat-red); font-weight: bold; margin-top: 1rem; margin-bottom: 0.5rem;">$1</h4>')
+                .replace(/• (.*)/g, '<li style="margin-bottom: 0.3rem;">$1</li>')
+                .replace(/(\d+\.) (.*)/g, '<li style="margin-bottom: 0.3rem; font-weight: bold;">$2</li>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong style="color: var(--red-hat-red);">$1</strong>')
+                .replace(/\n/g, '<br>');
+            
+            // Wrap lists
+            content = content.replace(/(<li style="margin-bottom: 0.3rem;">.*?<\/li>)/gs, '<ul style="padding-left: 1.5rem;">$1</ul>');
+        } else if (type === 'system') {
+            // Basic formatting for system messages
             content = content
                 .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\*(.*?)\*/g, '<em>$1</em>')
                 .replace(/🔧/g, '<i class="fas fa-tools"></i>')
                 .replace(/❌/g, '<i class="fas fa-exclamation-triangle"></i>')
-                .replace(/✅/g, '<i class="fas fa-check"></i>');
+                .replace(/✅/g, '<i class="fas fa-check"></i>')
+                .replace(/\n/g, '<br>');
         }
         
         messageDiv.innerHTML = content;
